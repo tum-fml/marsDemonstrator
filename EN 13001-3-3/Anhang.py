@@ -42,3 +42,19 @@ Laufradmaterial5 = {
     "Aulegungshärte":
 }
 
+Laufradmaterial6 = {
+    "Bezeichnung": "",
+    "Norm" : "",
+    "Materialnummer" : "",
+    "Lieferzustand": "",
+    "Bruchfestigkeit": ,
+    "Aulegungshärte":
+}
+Laufradmaterial7 = {
+    "Bezeichnung": "",
+    "Norm" : "",
+    "Materialnummer" : "",
+    "Lieferzustand": "",
+    "Bruchfestigkeit": ,
+    "Aulegungshärte":
+}
