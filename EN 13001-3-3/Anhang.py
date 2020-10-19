@@ -4,7 +4,7 @@ Laufradmaterial1 = {
     "Materialnummer" : "0.7060",
     "Lieferzustand": "Gusszustand",
     "Bruchfestigkeit":  ,
-    "Aulegungshärte": 
+    "Auslegungshärte": 
 }
 Laufradmaterial2 = {
     "Bezeichnung": "",
@@ -12,7 +12,7 @@ Laufradmaterial2 = {
     "Materialnummer" : "",
     "Lieferzustand": "",
     "Bruchfestigkeit": ,
-    "Aulegungshärte":
+    "Auslegungshärte":
 }
 
 Laufradmaterial3 = {
@@ -21,7 +21,7 @@ Laufradmaterial3 = {
     "Materialnummer" : "",
     "Lieferzustand": "",
     "Bruchfestigkeit": ,
-    "Aulegungshärte":
+    "Auslegungshärte":
 }
 
 Laufradmaterial4 = {
@@ -30,7 +30,7 @@ Laufradmaterial4 = {
     "Materialnummer" : "",
     "Lieferzustand": "",
     "Bruchfestigkeit": ,
-    "Aulegungshärte":
+    "Auslegungshärte":
 }
 
 Laufradmaterial5 = {
@@ -48,7 +48,7 @@ Laufradmaterial6 = {
     "Materialnummer" : "",
     "Lieferzustand": "",
     "Bruchfestigkeit": ,
-    "Aulegungshärte":
+    "Auslegungshärte":
 }
 Laufradmaterial7 = {
     "Bezeichnung": "",
@@ -56,5 +56,5 @@ Laufradmaterial7 = {
     "Materialnummer" : "",
     "Lieferzustand": "",
     "Bruchfestigkeit": ,
-    "Aulegungshärte":
+    "Auslegungshärte":
 }
