@@ -1,10 +1,10 @@
 Laufradmaterial1 = {
-    "Bezeichnung": "",
-    "Norm" : "",
-    "Materialnummer" : "",
-    "Lieferzustand": "",
-    "Bruchfestigkeit": ,
-    "Aulegungshärte":
+    "Bezeichnung": "GE 300",
+    "Norm" : "EN 10293",
+    "Materialnummer" : "0.7060",
+    "Lieferzustand": "Gusszustand",
+    "Bruchfestigkeit":  ,
+    "Aulegungshärte": 
 }
 Laufradmaterial2 = {
     "Bezeichnung": "",
@@ -39,7 +39,7 @@ Laufradmaterial5 = {
     "Materialnummer" : "",
     "Lieferzustand": "",
     "Bruchfestigkeit": ,
-    "Aulegungshärte":
+    "Auslegungshärte":
 }
 
 Laufradmaterial6 = {
