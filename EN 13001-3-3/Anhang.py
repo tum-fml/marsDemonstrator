@@ -115,6 +115,45 @@ Schienenmaterial4={
     "Auslegungshärte": 225
 }
 
+Schienenmaterial5={
+    "Bezeichnung" : "C35E",
+    "Norm" : "EN 10083-2",
+    "Materialnummer" : "1.1181",
+    "Lieferzustand": "+N",
+    "Bruchfestigkeit": 520 ,
+    "Auslegungshärte": 155
+}
+
+Schienenmaterial6={
+    "Bezeichnung" : "C55",
+    "Norm" : "EN 10083-2",
+    "Materialnummer" : "1.0535",
+    "Lieferzustand": "+N",
+    "Bruchfestigkeit": 640 ,
+    "Auslegungshärte": 190
+}
+Schienenmaterial7={
+    "Bezeichnung" : "R260Mn",
+    "Norm" : "EN 13674-1",
+    "Materialnummer" : "1.0624",
+    "Lieferzustand": "+N",
+    "Bruchfestigkeit": 870 ,
+    "Auslegungshärte": 260
+}
+
+Schienenmaterialien ={
+    Schienenmaterial1 : "Schienenmaterial1",
+    Schienenmaterial2:  "Schienenmaterial2",
+    Schienenmaterial3:  "Schienenmaterial3",
+    Schienenmaterial4:  "Schienenmaterial4",
+    Schienenmaterial5:  "Schienenmaterial5",
+    Schienenmaterial6: "Schienenmaterial6",
+    Schienenmaterial7: "Schienenmaterial7"
+}
+
+
+
+
 
 
 
