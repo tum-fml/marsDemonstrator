@@ -61,12 +61,60 @@ Laufradmaterial7 = {
 
 
 Laufradmaterialien = {
-   "Laufradmaterial1" = Laufradmaterial1, 
+   "Laufradmaterial1" : Laufradmaterial1, 
    "Laufradmaterial2" : Laufradmaterial2,
    "Laufradmaterial3" : Laufradmaterial3,
    "Laufradmaterial4" : Laufradmaterial4,
    "Laufradmaterial5" : Laufradmaterial5,
-   "Laufradmaterial6"
-   "Laufradmaterial7"
+   "Laufradmaterial6" : Laufradmaterial6,
+   "Laufradmaterial7" : Laufradmaterial7,
+}
+Laufradmaterialien_oberflächengehärtet = {
+    "Bezeichnung" : "42CrMo4",
+    "Norm" : "EN 10083-3",
+    "Materialnummer" : 1.7225,
+    "Lieferzustand": "+N, oberflächengehärtet",
+    "Bruchfestigkeit": 420 ,
+    "Mindestoberflächenhärte": 252
+}
+
+Schienenmaterial1 = {
+    "Bezeichnung" : "S235",
+    "Norm" : "EN 10025-2",
+    "Materialnummer" : "unknown",
+    "Lieferzustand": "+N",
+    "Bruchfestigkeit": 360 ,
+    "Auslegungshärte": 125
 
 }
+
+Schienenmaterial2 ={
+    "Bezeichnung" : "S275",
+    "Norm" : "EN 10025-2",
+    "Materialnummer" : "unknown",
+    "Lieferzustand": "+N",
+    "Bruchfestigkeit": 410 ,
+    "Auslegungshärte": 145
+
+}
+Schienenmaterial3={
+    "Bezeichnung" : "S355",
+    "Norm" : "EN 10025-2",
+    "Materialnummer" : "unknown",
+    "Lieferzustand": "+N",
+    "Bruchfestigkeit": 520 ,
+    "Auslegungshärte": 175
+}
+
+Schienenmaterial4={
+    "Bezeichnung" : "S690Q",
+    "Norm" : "EN 10025-6",
+    "Materialnummer" : "1.8928",
+    "Lieferzustand": "+yQT",
+    "Bruchfestigkeit": 760 ,
+    "Auslegungshärte": 225
+}
+
+
+
+
