@@ -12,7 +12,7 @@ frame2 = tk.Frame(master=window)
 frame2.pack(fill=tk.X)
 
 list = {
-    0: "First Name",
+    0: "Bezeichnung",
     1: "Last Name",
     2: "Address Line 1",
     3: "Address Line 2",
