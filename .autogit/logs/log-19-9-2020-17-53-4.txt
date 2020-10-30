@@ -1,0 +1,16 @@
+-------------------- Auto-Git Log --------------------
+		Mon Oct 19 2020 17:53:04 GMT+0200 (Mitteleuropäische Sommerzeit)
+------------------------------------------------------
+
+Modified files:
+* "EN 13001-3-3/Anhang.py"
+
+
+Created files:
+* .autogit/logs/log-19-9-2020-17-22-53.txt
+
+
+Deleted files:
+
+
+Renamed files:
