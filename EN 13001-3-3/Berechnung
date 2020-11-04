@@ -1,3 +1,4 @@
+import math
 class RBG: 
     def __init__(self, HB_w, HB_r, v_w, v_r, b_r, b_w, E_w, E_r, Y_m, Y_cf, m, D_w, f1, f2, f3, f4, f_f, f_y, r_k, r_3, Oberflächengehärtet_s, oberflächengehärtet_w):
       
@@ -24,104 +25,112 @@ class RBG:
       self.r_k=r_k
       self.r_3=r_3
       
-    def mindbreite(self): 
+    def compute_b(self): 
       b = min(self.b_w, self.b_r)
+      return b
 
     def Kontaktart (self):
-        if self.r_k < (5*mindbreite.b) :
+        if self.r_k < (5*compute_b) :
             kontakt = "Punktkontakt"
-        else: kontakt = "Linienkontakt"   
+        else: kontakt = "Linienkontakt" 
+        return kontakt  
            
 
 
-    def äq_elast (self):
+    def compute_E_m (self):
         E_m = (2*E_w*E_r)/ (E_r + E_w)
-        
+        return E_m
    
     #Modus1 
     
-    def Grenzwert_Bemessungskontaktkraft_statfestigkeit_Rad (self):
-        import math
+    def compute_F_rd_s_w (self):
+        
         if self.oberflächengehärtet_w== False:
             F_rd_s_w = (((7*self.HB_w)**2)*math.pi*self.D_w*self.b_w*self.f1*self.f2*(1-self.v_w)**2)/(self.E_m*self.Y_m)
         else:
             F_rd_s_w = (((4.2*self.f_y)**2)*math.pi*self.D_w*self.b_w*self.f1*self.f2*(1-self.v_w)**2)/(self.E_m*self.Y_m)
+        return F_rd_s_w
+    
+    def compute_F_sd_f (self):
+        return 100
+
+    def compute_F_sd_s (self):
+        return 200
+    
+    def compute_s_c (self):
+       s_c = compute_k_c*compute_ν_c
+       return s_c
+    
+    def compute_k_c (self):
+        return 300
+    
+    def compute_i_tot (self):
+        return 400
+    
+    def compute_ν_c (self):
+        return 500
 
     
-    def Bemessungskontaktkraft_Ermüdungsfestigkeit(self):
-        pass
-
-    def Bemessungskontaktkraft_statfestigkeit (self):
-        pass
-    
-    def Kontaktkraftverlaufparamater(self):
-       s_c = Kontaktkraftkollektivbeiwert.k_c*relativ_Gesamtzahl_Rollkontakte.v_c
-       
-    
-    def Kontaktkraftkollektivbeiwert(self):
-        pass
-    
-    def Zählung_Rollkontakte(self):
-        pass
-    
-    def relativ_Gesamtzahl_Rollkontakte(self):
-        pass
-
-    
-    def Bezugskontaktkraft_Ermüdungsfestigkeit_Rad (self):
-        import math
+    def compute_F_u_w (self):
+        
         if self.oberflächengehärtet_w == False :
-            F_u_w = ((3*self.HB_w)**2*math.pi*self.D_w*self.b_w*(1-self.v_w**2)/äq_elast.E_m)
+            F_u_w = ((3*self.HB_w)**2*math.pi*self.D_w*self.b_w*(1-self.v_w**2)/compute_E_m.E_m)
         elif  self.oberflächengehärtet_w== True & self.HB_w > 0.6*self.f_y :
-            F_u_w = ((1.8*f_y)**2*math.pi*self.D_w*self.b_w*(1-self.v_w**2)/äq_elast.E_m)
-
-    def Grenzwert_Bemessungskontaktkraft_Ermüdungsfestigkeit_Rad(self):
-        import math
-        F_rd_f_w= (Bezugskontaktkraft_Ermüdungsfestigkeit_Rad.F_u_w*self.f_f)/(self.Y_cf*(Kontaktkraftverlaufparamater.s_c)**(1/self.m))
-
+            F_u_w = ((1.8*f_y)**2*math.pi*self.D_w*self.b_w*(1-self.v_w**2)/compute_E_m.E_m)
+        return F_u_w    
 
     
     
-    def Grenzwert_Bemessungskontaktkraft_statfestigkeit_Schiene (self):
-        import math
+    def compute_F_rd_f_w(self):
+        
+        F_rd_f_w= (compute_F_u_w.F_u_w*self.f_f)/(self.Y_cf*(compute_s_c.s_c)**(1/self.m))
+        return F_rd_f_w
+
+    
+    
+    def compute_F_rd_s_r(self):
+        
         if self.oberflächengehärtet_r== False:
             F_rd_s_r= (((7*self.HB_r)**2)*math.pi*self.D_w*self.b_r*self.f1*self.f2*(1-self.v_r)**2)/(self.E_m*self.Y_m)
         else:
             F_rd_s_r= (((4.2*self.f_y)**2)*math.pi*self.D_w*self.b_r*self.f1*self.f2*(1-self.v_r)**2)/(self.E_m*self.Y_m)
+        return  F_rd_s_r
 
 
-
-    def Bezugskontaktkraft_Ermüdungsfestigkeit_Schiene (self):
-        import math
+    def compute_F_u_r(self):
+       
         if self.oberflächengehärtet_s == False :
-            F_u_r= ((3*self.HB_r)**2*math.pi*self.D_w*self.b_s*(1-self.v_r**2)/äq_elast.E_m)
+            F_u_r= ((3*self.HB_r)**2*math.pi*self.D_w*self.b_s*(1-self.v_r**2)/compute_E_m.E_m)
         elif  self.oberflächengehärtet_r== True & self.HB_r > 0.6*self.f_y :
-            F_u_r= ((1.8*f_y)**2*math.pi*self.D_w*self.b_r*(1-self.v_r**2)/äq_elast.E_m)
-
-    def Grenzwert_Bemessungskontaktkraft_Ermüdungsfestigkeit_Schiene(self):
-        import math
-        F_rd_f_r= (Bezugskontaktkraft_Ermüdungsfestigkeit_Rad.F_u_r*self.f_f)/(self.Y_cf*(Kontaktkraftverlaufparamater.s_c)**(1/self.m))    
-
+            F_u_r= ((1.8*f_y)**2*math.pi*self.D_w*self.b_r*(1-self.v_r**2)/compute_E_m.E_m)
+        
+    def compute_F_rd_f_r(self):
+        
+        F_rd_f_r= (compute_F_u_r.F_u_r*self.f_f)/(self.Y_cf*(compute_s_c.s_c)**(1/self.m))    
+        return F_rd_f_r
 
 #Modus2
     
     def Mindestdurchmesser_statfestigkeit(self):
-       import math
+       
        if self.oberflächengehärtet_s == False :
-           D_w_Sf_min =(Bemessungskontaktkraft_statfestigkeit.f_sd_s*self.Y_m*äq_elast.E_m)/((7*self.HB_r)**2*math.pi*mindbreite.b*(1-self.v_w**2)*self.f1*self.f2)
+           D_w_Sf_min =(compute_F_sd_s*self.Y_m*compute_E_m.E_m)/((7*self.HB_r)**2*math.pi*mindbreite.b*(1-self.v_w**2)*self.f1*self.f2)
        elif self.oberflächengehärtet_s==True &  self.HB_r > 0.6*self.f_y: 
-           D_w_Sf_min =(Bemessungskontaktkraft_statfestigkeit.f_sd_s*self.Y_m*äq_elast.E_m)/((1.2*self.f_y)**2*math.pi*mindbreite.b*(1-self.v_w**2)*self.f1*self.f2)
+           D_w_Sf_min =(compute_F_sd_s*self.Y_m*compute_E_m.E_m)/((1.2*self.f_y)**2*math.pi*mindbreite.b*(1-self.v_w**2)*self.f1*self.f2)
 
     def Mindestdurchmesser_Ermüdungsfestigkeit(self):
-       import math
+       
        if self.oberflächengehärtet_s == False :
-         D_w_Ef_min =  (Bemessungskontaktkraft_Ermüdungsfestigkeit.f_sd_s*self.Y_cf*Kontaktkraftverlaufparamater.s_c**(1/self.m)*äq_elast.E_m)/(self.f_f*math.pi*mindbreite.b*(3*self.HB_w)**2*(1-self.v_w**2))
+         D_w_Ef_min =  (compute_F_sd_f*self.Y_cf*compute_s_c**(1/self.m)*compute_E_m)/(self.f_f*math.pi*mindbreite.b*(3*self.HB_w)**2*(1-self.v_w**2))
        elif self.oberflächengehärtet_s == True &  self.HB_r > 0.6*self.f_y: 
-         D_w_Ef_min =  (Bemessungskontaktkraft_Ermüdungsfestigkeit.f_sd_s*self.Y_cf*Kontaktkraftverlaufparamater.s_c**(1/self.m)*äq_elast.E_m)/(self.f_f*math.pi*mindbreite.b*(1.8*self.f_y)**2*(1-self.v_w**2))
+         D_w_Ef_min =  (compute_F_sd_f*self.Y_cf*compute_s_c**(1/self.m)*compute_E_m)/(self.f_f*math.pi*mindbreite.b*(1.8*self.f_y)**2*(1-self.v_w**2))
            
 
 
            
+
+
+
 
 
 
