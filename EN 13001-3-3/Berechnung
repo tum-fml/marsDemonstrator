@@ -1,9 +1,25 @@
 import math
+from collections import namedtuple
+
+
+
+Wheel= namedtuple("Wheel","material geometry design_parameters variable_parameters")
+Wheel_geometry = namedtuple("Wheel_geometry", "b_w")
+Wheel_material = namedtuple("Wheel_material", "name E hardened")
+
+Rail= namedtuple("Rail", "material geometry design_parameters variable_parameters")
+Rail_geometry= namedtuple("Rail_geometry", "b_r")
+Rail_material= namedtuple("Rail_material", "name E hardened")
+
+
+
+
 class RBG: 
-    def __init__(self, HB_w, HB_r, v_w, v_r, b_r, b_w, E_w, E_r, Y_m, Y_cf, m, D_w, f1, f2, f3, f4, f_f, f_y, r_k, r_3, Oberflächengehärtet_s, oberflächengehärtet_w):
+    """def __init__(self, HB_w, HB_r, v_w, v_r, b_r, b_w, E_w, E_r, Y_m, Y_cf, m, D_w, f1, f2, f3, f4, f_f, f_y, r_k, r_3, hardened_s, hardened_w):
+
       
-      self.oberflächengehärtet_w = oberflächengehärtet_w
-      self.oberflächengehärtet_s = oberflächengehärtet_s
+      self.hardened_w = hardened_w
+      self.hardened_s = hardened_s
       self.HB_w = HB_w
       self.HB_r = HB_r
       self.v_w = v_w
@@ -23,8 +39,62 @@ class RBG:
       self.f_f=f_f
       self.f_y=f_y
       self.r_k=r_k
-      self.r_3=r_3
+      self.r_3=r_3"""
       
+    Wheel= namedtuple("Wheel","material geometry design_parameters variable_parameters factors coefficients")
+    Wheel_material = namedtuple("Wheel_material", "name E_w hardened_w HB_w f_y")    
+    Wheel_geometry = namedtuple("Wheel_geometry", "b_w r_k")    
+    Wheel_variable_parameters={"D_w": None}
+    Wheel_design_parameters={"k_c": 1,
+                       "i_tot": None,
+                       "v_c": None}    
+    Wheel_factors={"f_1": 1,
+                   "f_2": None,
+                   "f_f":1 ,
+                   "f_f1": 1, 
+                   "f_f2": 1, 
+                   "f_f3": 1, 
+                   "f_f4": 1}    
+    Wheel_coefficients={'Y_m': 1.1,
+                       'Y_cf': 1.1,
+                       'm': 10/3,
+                       'v_w': 0.3,
+                       'Y_p': 1 }
+
+    wheel_geometry=Wheel_geometry(100,59)                  
+    wheel_material=Wheel_material('name1',210000,True)
+    wheel= Wheel(wheel_material, wheel_geometry, Wheel_design_parameters, Wheel_variable_parameters, Wheel_factors,Wheel_coefficients)
+    
+    Rail=namedtuple ("Rail", "material geometry design_parameters variable_parameters factors coefficients" )
+    
+    Rail_material = namedtuple("Wheel_material", "name E hardened HB_r f_y")    
+    Rail_geometry = namedtuple("Wheel_geometry", "b_r r_3")    
+    Rail_variable_parameters={}
+    Rail_design_parameters={"k_c": 1,
+                            "i_tot": None,
+                            "v_c": None}    
+    Rail_factors={ "f_1": 1088,
+                   "f_2": None,
+                   "f_f":1 ,
+                   "f_f1": 1, 
+                   "f_f2": 1, 
+                   "f_f3": 1, 
+                   "f_f4": 1}    
+    Rail_coefficients={'Y_m': 1.1,
+                       'Y_cf': 1.1,
+                       'm': 10/3,
+                       'v_w': 0.3,
+                       'Y_p': 1 }
+    
+    rail_material=Rail_material("name2", 1200, True, 140, 1)
+    rail_geometry=Rail.geometry(1400,300)
+
+    rail=Rail(rail_material, rail_geometry, Rail_variable_parameters, Rail_design_parameters, Rail_factors,Rail_coefficients)
+    
+    m1=rail.geometry
+    print(m1)
+    
+    
     def compute_b(self): 
       b = min(self.b_w, self.b_r)
       return b
@@ -38,14 +108,14 @@ class RBG:
 
 
     def compute_E_m (self):
-        E_m = (2*E_w*E_r)/ (E_r + E_w)
+        E_m = (2*self.E_w*self.E_r)/ (self.E_r + self.E_w)
         return E_m
    
     #Modus1 
     
     def compute_F_rd_s_w (self):
         
-        if self.oberflächengehärtet_w== False:
+        if self.hardened_w== False:
             F_rd_s_w = (((7*self.HB_w)**2)*math.pi*self.D_w*self.b_w*self.f1*self.f2*(1-self.v_w)**2)/(self.E_m*self.Y_m)
         else:
             F_rd_s_w = (((4.2*self.f_y)**2)*math.pi*self.D_w*self.b_w*self.f1*self.f2*(1-self.v_w)**2)/(self.E_m*self.Y_m)
@@ -73,10 +143,10 @@ class RBG:
     
     def compute_F_u_w (self):
         
-        if self.oberflächengehärtet_w == False :
+        if self.hardened_w == False :
             F_u_w = ((3*self.HB_w)**2*math.pi*self.D_w*self.b_w*(1-self.v_w**2)/compute_E_m.E_m)
-        elif  self.oberflächengehärtet_w== True & self.HB_w > 0.6*self.f_y :
-            F_u_w = ((1.8*f_y)**2*math.pi*self.D_w*self.b_w*(1-self.v_w**2)/compute_E_m.E_m)
+        elif  self.hardened_w== True & self.HB_w > 0.6*self.f_y :
+            F_u_w = ((1.8*self.f_y)**2*math.pi*self.D_w*self.b_w*(1-self.v_w**2)/compute_E_m.E_m)
         return F_u_w    
 
     
@@ -90,7 +160,7 @@ class RBG:
     
     def compute_F_rd_s_r(self):
         
-        if self.oberflächengehärtet_r== False:
+        if self.hardened_r== False:
             F_rd_s_r= (((7*self.HB_r)**2)*math.pi*self.D_w*self.b_r*self.f1*self.f2*(1-self.v_r)**2)/(self.E_m*self.Y_m)
         else:
             F_rd_s_r= (((4.2*self.f_y)**2)*math.pi*self.D_w*self.b_r*self.f1*self.f2*(1-self.v_r)**2)/(self.E_m*self.Y_m)
@@ -99,35 +169,40 @@ class RBG:
 
     def compute_F_u_r(self):
        
-        if self.oberflächengehärtet_s == False :
+        if self.hardened_s == False :
             F_u_r= ((3*self.HB_r)**2*math.pi*self.D_w*self.b_s*(1-self.v_r**2)/compute_E_m.E_m)
-        elif  self.oberflächengehärtet_r== True & self.HB_r > 0.6*self.f_y :
-            F_u_r= ((1.8*f_y)**2*math.pi*self.D_w*self.b_r*(1-self.v_r**2)/compute_E_m.E_m)
-        
+        elif  self.hardened_r== True & self.HB_r > 0.6*self.f_y :
+            F_u_r= ((1.8*self.f_y)**2*math.pi*self.D_w*self.b_r*(1-self.v_r**2)/compute_E_m.E_m)
+        return F_u_r
+    
     def compute_F_rd_f_r(self):
-        
         F_rd_f_r= (compute_F_u_r.F_u_r*self.f_f)/(self.Y_cf*(compute_s_c.s_c)**(1/self.m))    
         return F_rd_f_r
 
 #Modus2
     
-    def Mindestdurchmesser_statfestigkeit(self):
+    def compute_D_w_Ef_min(self):
        
-       if self.oberflächengehärtet_s == False :
-           D_w_Sf_min =(compute_F_sd_s*self.Y_m*compute_E_m.E_m)/((7*self.HB_r)**2*math.pi*mindbreite.b*(1-self.v_w**2)*self.f1*self.f2)
-       elif self.oberflächengehärtet_s==True &  self.HB_r > 0.6*self.f_y: 
-           D_w_Sf_min =(compute_F_sd_s*self.Y_m*compute_E_m.E_m)/((1.2*self.f_y)**2*math.pi*mindbreite.b*(1-self.v_w**2)*self.f1*self.f2)
+       if self.hardened_s == False :
+           D_w_Ef_min =(compute_F_sd_s*self.Y_m*compute_E_m.E_m)/((7*self.HB_r)**2*math.pi*compute_b.b*(1-self.v_w**2)*self.f1*self.f2)
+       elif self.hardened_s==True &  self.HB_r > 0.6*self.f_y: 
+           D_w_Sf_min =(compute_F_sd_s*self.Y_m*compute_E_m.E_m)/((1.2*self.f_y)**2*math.pi*compute_b.b*(1-self.v_w**2)*self.f1*self.f2)
+       return D_w_Sf_min
+    
+    def compute_D_w_Ef_min(self):
+       
+       if self.hardened_s == False :
+         D_w_Ef_min =  (compute_F_sd_f*self.Y_cf*compute_s_c**(1/self.m)*compute_E_m)/(self.f_f*math.pi*compute_b.b*(3*self.HB_w)**2*(1-self.v_w**2))
+       elif self.hardened_s == True &  self.HB_r > 0.6*self.f_y: 
+         D_w_Ef_min =  (compute_F_sd_f*self.Y_cf*compute_s_c**(1/self.m)*compute_E_m)/(self.f_f*math.pi*compute_b.b*(1.8*self.f_y)**2*(1-self.v_w**2))
+       return D_w_Ef_min
 
-    def Mindestdurchmesser_Ermüdungsfestigkeit(self):
-       
-       if self.oberflächengehärtet_s == False :
-         D_w_Ef_min =  (compute_F_sd_f*self.Y_cf*compute_s_c**(1/self.m)*compute_E_m)/(self.f_f*math.pi*mindbreite.b*(3*self.HB_w)**2*(1-self.v_w**2))
-       elif self.oberflächengehärtet_s == True &  self.HB_r > 0.6*self.f_y: 
-         D_w_Ef_min =  (compute_F_sd_f*self.Y_cf*compute_s_c**(1/self.m)*compute_E_m)/(self.f_f*math.pi*mindbreite.b*(1.8*self.f_y)**2*(1-self.v_w**2))
+
            
 
 
-           
+
+
 
 
 
