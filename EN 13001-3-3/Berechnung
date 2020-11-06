@@ -40,7 +40,8 @@ class RBG:
       self.f_y=f_y
       self.r_k=r_k
       self.r_3=r_3"""
-      
+    
+    #namedtuples 
     Wheel= namedtuple("Wheel","material geometry design_parameters variable_parameters factors coefficients")
     Wheel_material = namedtuple("Wheel_material", "name E_w hardened_w HB_w f_y")    
     Wheel_geometry = namedtuple("Wheel_geometry", "b_w r_k")    
@@ -91,9 +92,8 @@ class RBG:
 
     rail=Rail(rail_material, rail_geometry, Rail_variable_parameters, Rail_design_parameters, Rail_factors,Rail_coefficients)
     
-    m1=rail.geometry
-    print(m1)
     
+    #functions
     
     def compute_b(self): 
       b = min(self.b_w, self.b_r)
