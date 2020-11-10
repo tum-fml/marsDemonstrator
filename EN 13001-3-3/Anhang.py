@@ -1,154 +1,171 @@
-Laufradmaterial1 = {
-    "Bezeichnung": "GE 300",
+Wheel1 = {
+    "Name": "GE 300",
     "Norm" : "EN 10293",
-    "Materialnummer" : 1.0558,
-    "Lieferzustand": "+N",
-    "Bruchfestigkeit": 520 ,
-    "Auslegungshärte": 155
+    "Material number" : 1.0558,
+    "condition": "+N",
+    "f_y ": 520 ,
+    "HB_w": 155 , 
+    "E_w" : 210000  
 }
-Laufradmaterial2 = {
-    "Bezeichnung": "EN-GJS 600-3",
+
+Wheel2 = {
+    "name": "EN-GJS 600-3",
+    "norm" : "EN 1563",
+    "material Number" : 0.7060 ,
+    "condition": "Gusszustand",
+    "f_y ": 600 ,
+    "HB_w": 210,
+    "E_w" : 177000
+}
+
+Wheel3 = {
+    "name": "EN-GJS-700-2",
     "Norm" : "EN 1563",
-    "Materialnummer" : 0.7060 ,
-    "Lieferzustand": "Gusszustand",
-    "Bruchfestigkeit": 600 ,
-    "Auslegungshärte": 210
+    "material number" : 0.7070,
+    "condition": "Gusszustand",
+    "f_y ":700 ,
+    "HB_w": 245,
+    "E_w": 180000
 }
 
-Laufradmaterial3 = {
-    "Bezeichnung": "EN-GJS-700-2",
-    "Norm" : "EN 1563",
-    "Materialnummer" : 0.7070,
-    "Lieferzustand": "Gusszustand",
-    "Bruchfestigkeit":700 ,
-    "Auslegungshärte": 245
+Wheel4 = {
+    "name": "25CrMo4",
+    "norm" : "EN 10083-3",
+    "material number" : 1.7218,
+    "condition": "+QT",
+    "f_y ": 650 ,
+    "HB_w": 190,
+    "E_w":210000
 }
 
-Laufradmaterial4 = {
-    "Bezeichnung": "25CrMo4",
-    "Norm" : "EN 10083-3",
-    "Materialnummer" : 1.7218,
-    "Lieferzustand": "+QT",
-    "Bruchfestigkeit": 650 ,
-    "Auslegungshärte": 190
+Wheel5 = {
+    "name": "34CrMo4",
+    "norm" : "EN 10083-3",
+    "material number" : 1.7220,
+    "condition": "+QT",
+    "f_y ": 700 ,
+    "HB_w": 210,
+    " E_w":210000
 }
 
-Laufradmaterial5 = {
-    "Bezeichnung": "34CrMo4",
-    "Norm" : "EN 10083-3",
-    "Materialnummer" : 1.7220,
-    "Lieferzustand": "+QT",
-    "Bruchfestigkeit": 700 ,
-    "Auslegungshärte": 210
+Wheel6 = {
+    "name": "42CrMo4",
+    "norm" : "EN 10083-3",
+    "material number" : 1.7225,
+    "condition": "+QT",
+    "f_y": 750 ,
+    "HB_w": 225,
+    " E_w":210000
 }
-
-Laufradmaterial6 = {
-    "Bezeichnung": "42CrMo4",
-    "Norm" : "EN 10083-3",
-    "Materialnummer" : 1.7225,
-    "Lieferzustand": "+QT",
-    "Bruchfestigkeit": 750 ,
-    "Auslegungshärte": 225
-}
-Laufradmaterial7 = {
-    "Bezeichnung": "33NiCrMoV14-5",
-    "Norm" : "EN 10280-3",
-    "Materialnummer" : 1.6956,
-    "Lieferzustand": "+QT",
-    "Bruchfestigkeit": 1000 ,
-    "Auslegungshärte": 295
+Wheel7 = {
+    "name": "33NiCrMoV14-5",
+    "norm" : "EN 10280-3",
+    "material number" : 1.6956,
+    "condition": "+QT",
+    " f_y": 1000 ,
+    "HB_w": 295,
+    " E_w":210000
 }
 
 
-Laufradmaterialien = {
-   "Laufradmaterial1" : Laufradmaterial1, 
-   "Laufradmaterial2" : Laufradmaterial2,
-   "Laufradmaterial3" : Laufradmaterial3,
-   "Laufradmaterial4" : Laufradmaterial4,
-   "Laufradmaterial5" : Laufradmaterial5,
-   "Laufradmaterial6" : Laufradmaterial6,
-   "Laufradmaterial7" : Laufradmaterial7,
+Wheelien = {
+   "Wheel1" : Wheel1, 
+   "Wheel2" : Wheel2,
+   "Wheel3" : Wheel3,
+   "Wheel4" : Wheel4,
+   "Wheel5" : Wheel5,
+   "Wheel6" : Wheel6,
+   "Wheel7" : Wheel7,
 }
-Laufradmaterialien_oberflächengehärtet = {
-    "Bezeichnung" : "42CrMo4",
-    "Norm" : "EN 10083-3",
-    "Materialnummer" : 1.7225,
-    "Lieferzustand": "+N, oberflächengehärtet",
-    "Bruchfestigkeit": 420 ,
-    "Mindestoberflächenhärte": 252
-}
-
-Schienenmaterial1 = {
-    "Bezeichnung" : "S235",
-    "Norm" : "EN 10025-2",
-    "Materialnummer" : "unknown",
-    "Lieferzustand": "+N",
-    "Bruchfestigkeit": 360 ,
-    "Auslegungshärte": 125
-
+Wheelien_oberflächengehärtet = {
+    "name" : "42CrMo4",
+    "norm" : "EN 10083-3",
+    "material number" : 1.7225,
+    "condition": "+N, oberflächengehärtet",
+    " f_y ": 420 ,
+    "HB_r": 252,
+    " E_r":210000
 }
 
-Schienenmaterial2 ={
-    "Bezeichnung" : "S275",
-    "Norm" : "EN 10025-2",
-    "Materialnummer" : "unknown",
-    "Lieferzustand": "+N",
-    "Bruchfestigkeit": 410 ,
-    "Auslegungshärte": 145
+Rail1 = {
+    "name" : "S235",
+    "norm" : "EN 10025-2",
+    "material number" : "unknown",
+    "condition": "+N",
+    " f_y": 360 ,
+    "HB_r": 125,
+    " E_r":210000
 
 }
-Schienenmaterial3={
-    "Bezeichnung" : "S355",
-    "Norm" : "EN 10025-2",
-    "Materialnummer" : "unknown",
-    "Lieferzustand": "+N",
-    "Bruchfestigkeit": 520 ,
-    "Auslegungshärte": 175
+
+Rail2 ={
+    "name" : "S275",
+    "norm" : "EN 10025-2",
+    "material number" : "unknown",
+    "condition": "+N",
+    " f_y ": 410 ,
+    "HB_r": 145,
+    " E_r":210000
+
+}
+Rail3={
+    "name" : "S355",
+    "norm" : "EN 10025-2",
+    "material number" : "unknown",
+    "condition": "+N",
+    "break point  f_y": 520 ,
+    " HB_r": 175,
+    " E_r":210000
 }
 
-Schienenmaterial4={
-    "Bezeichnung" : "S690Q",
-    "Norm" : "EN 10025-6",
-    "Materialnummer" : "1.8928",
-    "Lieferzustand": "+yQT",
-    "Bruchfestigkeit": 760 ,
-    "Auslegungshärte": 225
+Rail4={
+    "name" : "S690Q",
+    "norm" : "EN 10025-6",
+    "material number" : "1.8928",
+    "condition": "+yQT",
+    " f_y ": 760 ,
+    " HB_r": 225,
+    " E_r":210000
 }
 
-Schienenmaterial5={
-    "Bezeichnung" : "C35E",
-    "Norm" : "EN 10083-2",
-    "Materialnummer" : "1.1181",
-    "Lieferzustand": "+N",
-    "Bruchfestigkeit": 520 ,
-    "Auslegungshärte": 155
+Rail5={
+    "name" : "C35E",
+    "norm" : "EN 10083-2",
+    "material number" : "1.1181",
+    "condition": "+N",
+    " f_y ": 520 ,
+    " HB_r": 155,
+    " E_r":210000
 }
 
-Schienenmaterial6={
-    "Bezeichnung" : "C55",
-    "Norm" : "EN 10083-2",
-    "Materialnummer" : "1.0535",
-    "Lieferzustand": "+N",
-    "Bruchfestigkeit": 640 ,
-    "Auslegungshärte": 190
+Rail6={
+    "name" : "C55",
+    "norm" : "EN 10083-2",
+    "material number" : "1.0535",
+    "condition": "+N",
+    " f_y ": 640 ,
+    " HB_r": 190,
+    " E_r":210000
 }
-Schienenmaterial7={
-    "Bezeichnung" : "R260Mn",
-    "Norm" : "EN 13674-1",
-    "Materialnummer" : "1.0624",
-    "Lieferzustand": "+N",
-    "Bruchfestigkeit": 870 ,
-    "Auslegungshärte": 260
+Rail7={
+    "name" : "R260Mn",
+    "norm" : "EN 13674-1",
+    "material number" : "1.0624",
+    "condition": "+N",
+    " f_y ": 870 ,
+    " HB_r": 260,
+    " E_r":210000
 }
 
-Schienenmaterialien ={
-    Schienenmaterial1 : "Schienenmaterial1",
-    Schienenmaterial2:  "Schienenmaterial2",
-    Schienenmaterial3:  "Schienenmaterial3",
-    Schienenmaterial4:  "Schienenmaterial4",
-    Schienenmaterial5:  "Schienenmaterial5",
-    Schienenmaterial6: "Schienenmaterial6",
-    Schienenmaterial7: "Schienenmaterial7"
+Railien = {
+    
+    Rail1 : "Rail1",
+    Rail2:  "Rail2",
+    Rail3:  "Rail3",
+    Rail4:  "Rail4",
+    Rail5:  "Rail5",
+    Rail6: "Rail6",
+    Rail7: "Rail7"
 }
 
 
