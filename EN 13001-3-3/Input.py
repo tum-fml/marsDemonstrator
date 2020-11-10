@@ -1,61 +1,76 @@
+import pandas as  pd
 from tkinter import *
-
-
-"""def Auswahl(v):
-    if v==1:    
-
-      Modus1= Tk()
-      Modus1.title("Modus 1: Überprüfung der statischen Festigkeits- und Ermüdungsfestigkeitsnachweise")
-      l1=Label(Modus1, text='Bitte tragen Sie die Parameter ein.').pack()
-      l2=Label(Modus1, text="yacine").pack()
-      e1= Entry(Modus1).pack()
-      
-      Modus1.mainloop()
-      
-    elif v==2:    
-       
-        Modus2= Tk()
-        Modus2.title("Modus 2: Bestimmung des minimalen Laufraddurchmessers unter Nachweiserfüllung ")
-        Label3=Label(Modus2, Text='Bitte tragen Sie die Parameter ein.').grid(row=0)
-        
-        Label4=Label(Modus2, Text="yacine2").grid(row=1)
-        e1 = Entry(Modus2)
-        e1.grid(row=1, column=1)
-        
-        Modus2.mainloop() """
-
-def yassine():
-      
-      Modus1= Tk()
-      Modus1.title("Modus 1: Überprüfung der statischen Festigkeits- und Ermüdungsfestigkeitsnachweise")
-      Modus1.minsize(600,500)
-      l1=Label(Modus1, text='Bitte tragen Sie die Parameter ein.').grid(row=1, column=1)
-      
-      for x in range(0,len(fields)):
-       l2=Label(Modus1, text=fields[x]).grid(row=3+x)
-       e1= Entry(Modus1).grid(row=3+x, column=1)
-      
-      Modus1.mainloop()
+from tkinter import filedialog
+import tkinter.font as tkFont
+import pandas.io.excel._xlrd as xlrd
+import numpy as np
 
 input = Tk()
-input.title("Eigenschaften des Rad-Schiene Systems")
-input.minsize(600,500)
-label_welcome =Label(input, text="Willkommen bei MARS.")
-label_welcome.grid(row=1, column = 1)
+input.title("MARS")
+input.minsize(800,500)
+#input.wm_iconbitmap('icon)
 
-   
-v=IntVar()
-Label2=Label(input, text="Wählen Sie bitte den von Ihnen gewünschten Modus").grid(row=7,column=1)
-r1=Radiobutton(input, text="Modus 1: Überprüfung der statischen Festigkeits- und Ermüdungsfestigkeitsnachweis ", padx = 20, variable=v, value=1).grid(row=8,column=1)
-r2=Radiobutton(input, text="Modus 2: Bestimmung des minimalen Laufraddurchmessers unter Nachweiserfüllung", padx = 20, variable=v, value=2).grid(row=9,column=1)
+fontStyle = tkFont.Font(family="Lucida Grande", size=17)
+fontStyle1 = tkFont.Font(family="Lucida Grande", size=15)
+fontStyle2=tkFont.Font(family="Lucida Grande", size=12)
 
-b1=Button(input, text="Bestätigen", command=yassine).grid(row=10, column=1)
+label_welcome =Label(input, text="Please follow the instructions below to specify the necessary parameters", font=fontStyle)
+label_welcome.grid(padx=30, pady=10)
 
 
 
 
+text_instructions="""
+                       To enter the necessary parameters successfully,
+                       please upload the Excel-file using the button below (open file) """
 
-fields = ('Brinellhärte des Radmaterials: HB_w =', 'Brinellhärte des Schienenmaterials: HB_r', 'Querkontraktionszahl des Schienenmaterials: v_r =', 'Querkontraktionszahl des Radmaterials: v_w ', 'Raddurchmesser: D_w =', 'Elastizitätsmodul des Schienenmaterials: E_r','Elastizitätsmodul des Radmaterials: E_w =','Kontaktwiderstandsbeiwert: Y_cf =','Risikobeiwert: Y_n =','Teilsicherheitsbeiwert: Y_p =','Neigungskonstante für log-F/log-N-Kurve für Rollkontakte: m =','Radius der Laufradkante: r_3 =','Materialbreite des Laufrads: b_w =','Materialbreite der Schiene: b_r =')
+label_instructions=Label(input,text=text_instructions, font=fontStyle2, justify="left")
+label_instructions.place(x=10, y=70)
+
+
+
+
+#filedialog
+#input.opendialog=filedialog.askopenfilename(initialdir="/C", title= "Choose the Excel-file", filetypes=('Excel-files','*.xlsx'))
+def UploadAction():
+    global y
+    filename = filedialog.askopenfilename()
+    selected= Label(input, text='Selected: ').place(x=125, y=200)
+    print('Selected:', filename)
+    with open(filename, 'r') as f:
+      y = f.read()
+
+    d=xlrd.open_workbook(filename) 
+    sheet=d.sheet_by_index(0) 
+        
+    
+
+openfile=Label(input, text="Upload the Excel-file containing the parameters:", font=fontStyle2)
+buttonfile=Button(input,text="Open file", command=UploadAction)
+openfile.place(x=100, y=150)
+buttonfile.place(x=450 ,y= 150)
+
+
+
+
+
+#dropdownmenus
+clicked= StringVar()
+clicked.set("Default")
+
+dropdownmenu_text1= Label(input,text="choose a wheel-material:",font=fontStyle2).place(x=100 ,y=250)
+dropdownmenu_wheel= OptionMenu(input, clicked, "GE 300","EN-GJS 600-3","EN-GJS-700-2","25CrMo4","34CrMo4","42CrMo4","33NiCrMoV14-5").place(x=300,y=250)
+
+
+clicked1= StringVar()
+clicked1.set("Default")
+
+dropdownmenu_text2= Label(input,text="choose a rail-material:",font=fontStyle2).place(x=100, y=300)
+dropdownmenu_rail= OptionMenu(input, clicked1, "42CrMo4", "S235","S275","S355","S690Q","C35E","C55","R260Mn").place(x=300,y=300)
+
+
+
+
 
 
 input.mainloop()
