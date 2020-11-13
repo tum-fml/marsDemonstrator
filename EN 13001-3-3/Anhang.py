@@ -11,7 +11,7 @@ Wheel1 = {
 Wheel2 = {
     "name": "EN-GJS 600-3",
     "norm" : "EN 1563",
-    "material Number" : 0.7060 ,
+    "material number" : 0.7060 ,
     "condition": "Gusszustand",
     "f_y ": 600 ,
     "HB_w": 210,
@@ -68,7 +68,7 @@ Wheel7 = {
 }
 
 
-Wheelien = {
+Wheel_list = {
    "Wheel1" : Wheel1, 
    "Wheel2" : Wheel2,
    "Wheel3" : Wheel3,
@@ -77,7 +77,7 @@ Wheelien = {
    "Wheel6" : Wheel6,
    "Wheel7" : Wheel7,
 }
-Wheelien_oberflächengehärtet = {
+Wheel_hardened = {
     "name" : "42CrMo4",
     "norm" : "EN 10083-3",
     "material number" : 1.7225,
@@ -167,6 +167,12 @@ Railien = {
     Rail6: "Rail6",
     Rail7: "Rail7"
 }
+
+
+
+
+
+
 
 
 
