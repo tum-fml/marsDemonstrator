@@ -1,5 +1,7 @@
 import math
 from collections import namedtuple
+from Input import *
+from Anhang import *
 
 
 
@@ -15,11 +17,9 @@ Rail_material= namedtuple("Rail_material", "name E hardened")
 
 
 class RBG: 
-    """def __init__(self, HB_w, HB_r, v_w, v_r, b_r, b_w, E_w, E_r, Y_m, Y_cf, m, D_w, f1, f2, f3, f4, f_f, f_y, r_k, r_3, hardened_s, hardened_w):
-
-      
+    """      
       wheel.material[2] = hardened_w
-      self.hardened_s = hardened_s
+      self.hardened_r = hardened_r
       wheel.material[3] = HB_w
       rail.material[3] = HB_r
       wheel.coefficients["v_w"] = v_w
@@ -40,7 +40,11 @@ class RBG:
       wheel.material[4]=f_y
       wheel.geometry[1]=r_k
       rail.geometry[1]=r_3"""
-      
+    
+        
+
+
+    #wheelparameters
     Wheel= namedtuple("Wheel","material geometry design_parameters variable_parameters factors coefficients")
     Wheel_material = namedtuple("Wheel_material", "name E_w hardened_w HB_w f_y")    
     Wheel_geometry = namedtuple("Wheel_geometry", "b_w r_k")    
@@ -60,11 +64,12 @@ class RBG:
                        'm': 10/3,
                        'v_w': 0.3,
                        'Y_p': 1 }
-
+    #wheel_instance_example
     wheel_geometry=Wheel_geometry(100,59)                  
-    wheel_material=Wheel_material('name1',210000,True,5,8)
+    wheel_material=Wheel_material('Set_material.name_w',210000,True,5,8)
     wheel= Wheel(wheel_material, wheel_geometry, Wheel_design_parameters, Wheel_variable_parameters, Wheel_factors,Wheel_coefficients)
     
+    #railparameters
     Rail=namedtuple ("Rail", "material geometry design_parameters variable_parameters factors coefficients" )
     
     Rail_material = namedtuple("Wheel_material", "name E hardened HB_r f_y")    
@@ -86,15 +91,29 @@ class RBG:
                        'v_r': 0.3,
                        'Y_p': 1 }
     
-    rail_material=Rail_material("name2", 1200, True, 140, 1)
-    rail_geometry=Rail_geometry(1400,300)
 
+    def Set_material(self):
+     if callback.choosen_material_wheel!="Default":
+        name_w = callback.choosen_material_wheel
+        
+     elif callback.choosen_material_wheel=="Default":
+        name_w = UploadAction.df.iloc[23,i]
+
+     if callback.choosen_material_rail!="Default":
+         name_r = callback.choosen_material_rail
+     elif callback.choosen_material_rail== "Default":
+           name_r = UploadAction.df.iloc[24,i] 
+
+    #railinstance
+    rail_material=Rail_material(Set_material.name_r, 1200, True, 140, 1)
+    rail_geometry=Rail_geometry(1400,300)
     rail=Rail(rail_material, rail_geometry, Rail_variable_parameters, Rail_design_parameters, Rail_factors, Rail_coefficients)
     
     m1=rail.factors["f_1"]
     print(m1)
     
-'''   
+  #functions
+
     def compute_b(self): 
       b = min(wheel.geometry[0], rail.geometry[0])
       return b
@@ -152,7 +171,6 @@ class RBG:
     
     
     def compute_F_rd_f_w(self):
-        
         F_rd_f_w= (compute_F_u_w.F_u_w*wheel.factors["f_f"])/(wheel.coefficients["Y_cf"]*(compute_s_c)**(1/wheel.coefficients["m"]))
         return F_rd_f_w
 
@@ -169,7 +187,7 @@ class RBG:
 
     def compute_F_u_r(self):
        
-        if self.hardened_s == False :
+        if self.hardened_r == False :
             F_u_r= ((3*rail.material[3])**2*math.pi*wheel.variable_parameters["D_w"]*self.b_s*(1-rail.coefficients["v_r"]**2)/compute_E_m)
         elif  self.hardened_r== True & rail.material[3] > 0.6*wheel.material[4] :
             F_u_r= ((1.8*wheel.material[4])**2*math.pi*wheel.variable_parameters["D_w"]*rail.geometry[0]*(1-rail.coefficients["v_r"]**2)/compute_E_m)
@@ -183,22 +201,23 @@ class RBG:
     
     def compute_D_w_Ef_min(self):
        
-       if self.hardened_s == False :
+       if self.hardened_r == False :
            D_w_Ef_min =(compute_F_sd_s*wheel.coefficients["Y_m"]*compute_E_m.E_m)/((7*rail.material[3])**2*math.pi*compute_b.b*(1-wheel.coefficients["v_w"]**2)*rail.factors["f_1"]*wheel.factors["f_2"])
-       elif self.hardened_s==True &  rail.material[3] > 0.6*wheel.material[4]: 
+       elif self.hardened_r==True &  rail.material[3] > 0.6*wheel.material[4]: 
            D_w_Sf_min =(compute_F_sd_s*wheel.coefficients["Y_m"]*compute_E_m.E_m)/((1.2*wheel.material[4])**2*math.pi*compute_b.b*(1-wheel.coefficients["v_w"]**2)*rail.factors["f_1"]*wheel.factors["f_2"])
        return D_w_Sf_min
     
     def compute_D_w_Ef_min(self):
        
-       if self.hardened_s == False :
+       if self.hardened_r == False :
          D_w_Ef_min =  (compute_F_sd_f*wheel.coefficients["Y_cf"]*compute_s_c**(1/wheel.coefficients["m"])*compute_E_m)/(wheel.factors["f_f"]*math.pi*compute_b*(3*wheel.material[3])**2*(1-wheel.coefficients["v_w"]**2))
-       elif self.hardened_s == True &  rail.material[3] > 0.6*wheel.material[4]: 
+       elif self.hardened_r == True &  rail.material[3] > 0.6*wheel.material[4]: 
          D_w_Ef_min =  (compute_F_sd_f*wheel.coefficients["Y_cf"]*compute_s_c**(1/wheel.coefficients["m"])*compute_E_m)/(wheel.factors["f_f"]*math.pi*compute_b*(1.8*wheel.material[4])**2*(1-wheel.coefficients["v_w"]**2))
        return D_w_Ef_min
 
 
-           '''
+        
+
 
 
 
