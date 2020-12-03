@@ -1,175 +1,28 @@
-Wheel1 = {
-    "Name": "GE 300",
-    "Norm" : "EN 10293",
-    "Material number" : 1.0558,
-    "condition": "+N",
-    "f_y ": 520 ,
-    "HB_w": 155 , 
-    "E_w" : 210000  
-}
+from collections import namedtuple
+import numpy as np
 
-Wheel2 = {
-    "name": "EN-GJS 600-3",
-    "norm" : "EN 1563",
-    "material number" : 0.7060 ,
-    "condition": "Gusszustand",
-    "f_y ": 600 ,
-    "HB_w": 210,
-    "E_w" : 177000
-}
+wheel_standard=namedtuple("wheel_standard",'name norm material_number condition f_y HB E')
+rail_standard=namedtuple("rail_standard",'name norm material_number condition f_y HB E')
 
-Wheel3 = {
-    "name": "EN-GJS-700-2",
-    "Norm" : "EN 1563",
-    "material number" : 0.7070,
-    "condition": "Gusszustand",
-    "f_y ":700 ,
-    "HB_w": 245,
-    "E_w": 180000
-}
-
-Wheel4 = {
-    "name": "25CrMo4",
-    "norm" : "EN 10083-3",
-    "material number" : 1.7218,
-    "condition": "+QT",
-    "f_y ": 650 ,
-    "HB_w": 190,
-    "E_w":210000
-}
-
-Wheel5 = {
-    "name": "34CrMo4",
-    "norm" : "EN 10083-3",
-    "material number" : 1.7220,
-    "condition": "+QT",
-    "f_y ": 700 ,
-    "HB_w": 210,
-    " E_w":210000
-}
-
-Wheel6 = {
-    "name": "42CrMo4",
-    "norm" : "EN 10083-3",
-    "material number" : 1.7225,
-    "condition": "+QT",
-    "f_y": 750 ,
-    "HB_w": 225,
-    " E_w":210000
-}
-Wheel7 = {
-    "name": "33NiCrMoV14-5",
-    "norm" : "EN 10280-3",
-    "material number" : 1.6956,
-    "condition": "+QT",
-    " f_y": 1000 ,
-    "HB_w": 295,
-    " E_w":210000
-}
+wheel_dict={}
+wheel_dict["GE 300"]=wheel_standard("GE 300", "EN 10293",1.0558, "+N",520 , 155 , 210000  )
+wheel_dict["EN-GJS 600-3"]=wheel_standard( "EN-GJS 600-3","EN 1563",0.7060 ,"Gusszustand", 600, 210, 177000)
+wheel_dict["EN-GJS-700-2"]=wheel_standard("EN-GJS-700-2","EN 1563",0.7070,"Gusszustand",700 ,245, 180000)
+wheel_dict["25CrMo4"]=wheel_standard("25CrMo4","EN 10083-3",1.7218,"+QT",650 ,190, 210000)
+wheel_dict["34CrMo4"]=wheel_standard("34CrMo4","EN 10083-3",1.7220,"+QT",700 ,210,210000)
+wheel_dict["42CrMo4"]=wheel_standard("42CrMo4","EN 10083-3",1.7225,"+QT",750 ,225,210000)
+wheel_dict["33NiCrMoV14-5"]=wheel_standard("33NiCrMoV14-5","EN 10280-3",1.6956,"+QT",1000 ,295,210000)
+wheel_dict["42CrMo4"]=wheel_standard("42CrMo4","EN 10083-3",1.7225,"+N, oberflächengehärtet",420 ,252,210000)
 
 
-Wheel_list = {
-   "Wheel1" : Wheel1, 
-   "Wheel2" : Wheel2,
-   "Wheel3" : Wheel3,
-   "Wheel4" : Wheel4,
-   "Wheel5" : Wheel5,
-   "Wheel6" : Wheel6,
-   "Wheel7" : Wheel7,
-}
-Wheel_hardened = {
-    "name" : "42CrMo4",
-    "norm" : "EN 10083-3",
-    "material number" : 1.7225,
-    "condition": "+N, oberflächengehärtet",
-    " f_y ": 420 ,
-    "HB_r": 252,
-    " E_r":210000
-}
-
-Rail1 = {
-    "name" : "S235",
-    "norm" : "EN 10025-2",
-    "material number" : "unknown",
-    "condition": "+N",
-    " f_y": 360 ,
-    "HB_r": 125,
-    " E_r":210000
-
-}
-
-Rail2 ={
-    "name" : "S275",
-    "norm" : "EN 10025-2",
-    "material number" : "unknown",
-    "condition": "+N",
-    " f_y ": 410 ,
-    "HB_r": 145,
-    " E_r":210000
-
-}
-Rail3={
-    "name" : "S355",
-    "norm" : "EN 10025-2",
-    "material number" : "unknown",
-    "condition": "+N",
-    "break point  f_y": 520 ,
-    " HB_r": 175,
-    " E_r":210000
-}
-
-Rail4={
-    "name" : "S690Q",
-    "norm" : "EN 10025-6",
-    "material number" : "1.8928",
-    "condition": "+yQT",
-    " f_y ": 760 ,
-    " HB_r": 225,
-    " E_r":210000
-}
-
-Rail5={
-    "name" : "C35E",
-    "norm" : "EN 10083-2",
-    "material number" : "1.1181",
-    "condition": "+N",
-    " f_y ": 520 ,
-    " HB_r": 155,
-    " E_r":210000
-}
-
-Rail6={
-    "name" : "C55",
-    "norm" : "EN 10083-2",
-    "material number" : "1.0535",
-    "condition": "+N",
-    " f_y ": 640 ,
-    " HB_r": 190,
-    " E_r":210000
-}
-Rail7={
-    "name" : "R260Mn",
-    "norm" : "EN 13674-1",
-    "material number" : "1.0624",
-    "condition": "+N",
-    " f_y ": 870 ,
-    " HB_r": 260,
-    " E_r":210000
-}
-
-Railien = {
-    
-    Rail1 : "Rail1",
-    Rail2:  "Rail2",
-    Rail3:  "Rail3",
-    Rail4:  "Rail4",
-    Rail5:  "Rail5",
-    Rail6: "Rail6",
-    Rail7: "Rail7"
-}
-
-
-
+rail_dict={}
+rail_dict["S235"]=rail_standard("S235","EN 10025-2","unknown","+N",360 ,125,210000)
+rail_dict["S275"]=rail_standard("S275","EN 10025-2","unknown","+N",410 ,145,210000)
+rail_dict["S355"]=rail_standard("S355","EN 10025-2","unknown","+N",520 ,175,210000)
+rail_dict["S690Q"]=rail_standard("S690Q","EN 10025-6","1.8928","+yQT",760 ,225,210000)
+rail_dict["C35E"]=rail_standard("C35E","EN 10083-2","1.1181","+N",520 ,155,210000)
+rail_dict["C55"]=rail_standard("C55","EN 10083-2","1.0535","+N",640 ,190,210000)
+rail_dict["R260Mn"]=rail_standard("R260Mn","EN 13674-1","1.0624","+N",870 ,260,210000)
 
 
 
