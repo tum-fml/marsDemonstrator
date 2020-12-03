@@ -154,7 +154,7 @@ class RBG():
        elif self.wheel.material.hardened == 'True' : 
            
            a=(self.wheel.factors["f_f"]*math.pi*(1.8*self.wheel.material.f_y)**2*self.wheel.variable_parameters['b']*(1-self.wheel.coefficients["v_w"]**2))
-           b =  (self.wheel.variable_parameters['F_sd_f']*self.wheel.coefficients["Y_cf"]*self.wheel.design_parameters['s_c']**(1/self.wheel.    coefficients["m"])*self.wheel.variable_parameters['E_m'])
+           b =  (self.wheel.variable_parameters['F_sd_f']*self.wheel.coefficients["Y_cf"]*self.wheel.design_parameters['s_c']**(1/self.wheel.coefficients["m"])*self.wheel.variable_parameters['E_m'])
            
            D_w_Ef_min=b/a
        
