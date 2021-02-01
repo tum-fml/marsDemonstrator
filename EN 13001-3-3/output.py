@@ -1,44 +1,62 @@
-from pandas import xlsxwriter, read_excel
+import xlsxwriter
+import openpyxl
 
 
-def output_template():
+def output_template(input_parameters):
 
-    # Erstellen von excel Datei
-    workbook = xlsxwriter.Workbook('output.xlsx')
-    worksheet = workbook.add_worksheet()
-    bold = workbook.add_format({'bold': True})
+    workbook1 = xlsxwriter.Workbook('outputparameterss.xlsx')
+    inputandoutput = workbook1.add_worksheet(name="Output")
+    output_parameters = ["F_rd_s", "F_sd_s", "F_rd_f", "F_sd_f", "Fatigue strength condition", "Static strength condition"]
+    input_parameters.extend(["wheel material", "wheel E", "wheel hardeness", "wheel f_y", "rail material", "rail E", "rail hardeness", "rail f_y"])
+
+    # design, Lage, farbe schrift und zelle
+    cell_format = workbook1.add_format({'align': 'center', 'valign': 'center'})
+    cell_format2 = workbook1.add_format({"fg_color": "yellow", 'bold': True, 'align': 'center', 'valign': 'center'})
+    cell_format3 = workbook1.add_format({'fg_color': "green", 'bold': True, 'align': 'center', 'valign': 'center'})
+    inputandoutput.set_column(1, 1, 30)
+
+    merge_format = workbook1.add_format({
+        'bold': 1,
+        'border': 1,
+        'align': 'center',
+        'valign': 'vcenter',
+        'fg_color': 'silver'})
+    merge_format.set_rotation(90)
+    inputandoutput.merge_range(1, 0, len(input_parameters), 0, 'parameters', merge_format)
+    inputandoutput.merge_range(len(input_parameters)+1, 0, len(output_parameters)+len(input_parameters) + 9, 0, 'results', merge_format)
 
     # Erstellen der Vorlage
-    worksheet.write(1, 1, bold, "Configuration")
-    worksheet.write(2, 1, bold, "Rail")
-    worksheet.write(9, 1, bold, "Wheel")
+    inputandoutput.write(0, 1, "Configuration", cell_format3)
+    inputandoutput.write(len(input_parameters)+1, 1, "Rail", cell_format2)
+    inputandoutput.write(len(input_parameters)+8, 1, "Wheel", cell_format2)
 
-    for i in [3, 10]:
-        worksheet.write(i, 1, "F_rd_s")
-        worksheet.write(i+1, 1, "F_sd_s")
-        worksheet.write(i+2, 1, "F_rd_f")
-        worksheet.write(i+3, 1, "F_sd_f")
-        worksheet.write(i+4, 1, "Fatigue strength condition fulfilled")
-        worksheet.write(i+5, 1, "Fatigue strength condition fulfilled")
-    worksheet.write(16, 1, "Minimal diameter")
+    for parameter_in in range(len(input_parameters)):
+        inputandoutput.write(1+parameter_in, 1, input_parameters[parameter_in], cell_format)
+
+    for cell in [len(input_parameters)+2, len(input_parameters)+9]:
+        for parameter_out in range(len(output_parameters)):
+            inputandoutput.write(cell+parameter_out, 1, output_parameters[parameter_out], cell_format)
+
+    workbook1.close()
 
 
-def output_results(rbg, configuration_number):
-    output = read_excel("ouput.xlsx")
+def output_results(rbg, configuration_number, user_input_data):
 
-    output.write(1, configuration_number+1, configuration_number)
-    # writing rail results
-    output.write(3, configuration_number+1, rbg.rail.F_rd_s)
-    output.write(4, configuration_number+1, rbg.rail.F_sd_s)
-    output.write(5, configuration_number+1, rbg.rail.F_rd_f)
-    output.write(6, configuration_number+1, rbg.rail.F_sd_f)
-    output.write(7, configuration_number+1, rbg.rail.fullfilment_fatigue_strength)
-    output.write(8, configuration_number+1, rbg.rail.fullfilment_static_strength)
-    # writing wheel results
-    output.write(10, configuration_number+1, rbg.wheel.F_rd_s)
-    output.write(11, configuration_number+1, rbg.wheel.F_sd_s)
-    output.write(12, configuration_number+1, rbg.wheel.F_rd_f)
-    output.write(13, configuration_number+1, rbg.wheel.F_sd_f)
-    output.write(14, configuration_number+1, rbg.wheel.fullfilment_fatigue_strength)
-    output.write(15, configuration_number+1, rbg.wheel.fullfilment_static_strength)    
-    output.write(16, configuration_number+1, rbg.wheel.min_d)
+    output = openpyxl.load_workbook(filename='ouput.xlsx', read_only=False, keep_vba=True)
+
+    # write the configuration numbers
+    output.write(0, configuration_number+1, configuration_number)
+
+    # results
+    results_wheel = [rbg.wheel.F_rd_s, rbg.wheel.F_sd_s, rbg.wheel.F_rd_f, rbg.wheel.F_sd_f, rbg.wheel.fullfilment_fatigue_strength, rbg.wheel.fullfilment_static_strength, rbg.wheel.min_d]
+    results_rail = [rbg.rail.F_rd_s, rbg.rail.F_sd_s, rbg.rail.F_rd_f, rbg.rail.F_sd_f, rbg.rail.fullfilment_fatigue_strength, rbg.rail.fullfilment_static_strength]
+
+    # writing parameters
+    for wheelresult in range(len(results_wheel)):
+        output.write(wheelresult+len(user_input_data)+3, configuration_number+1, results_wheel[wheelresult])
+
+    for railresult in range(len(results_rail)):
+        output.write(railresult+len(user_input_data)+len(results_wheel)+5, configuration_number+1, results_rail[railresult])
+
+    output.write(len(user_input_data)+len(results_rail)+len(results_wheel)+5, configuration_number+1, rbg.wheel.min_d)
+    output.save('output.xlsx')
