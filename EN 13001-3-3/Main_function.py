@@ -3,7 +3,7 @@ from output import output_results, output_template
 
 
 def main_computation(mode, chosen, user_input_data):
-    output_template()
+    output_template(user_input_data.columns)
     configuration_number = 0
     for row in user_input_data.data.itertuples():
         configuration_number += 1
@@ -19,7 +19,7 @@ def main_computation(mode, chosen, user_input_data):
 
         else:
             print("please select the desired mode")
-        output_results(results, configuration_number)
+        output_results(rbg, configuration_number, row)
 
 
 def mode1(rbg):
@@ -31,7 +31,7 @@ def mode1(rbg):
     rbg.rail.compute_F_sd_f()
     rbg.rail.compute_F_rd_s(rbg.factors, rbg.coefficients, rbg.b, rbg.E_m)
     rbg.rail.compute_F_rd_f(rbg.factors, rbg.coefficients, rbg.b, rbg.E_m)
-    rbg.compute_condition_fullfilment
+    rbg.compute_condition_fullfilment()
 
 
 def mode2(rbg):
