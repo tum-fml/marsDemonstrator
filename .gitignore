@@ -1,7 +1,8 @@
 # Editors
-.vscode/
+ .vscode/
 .idea/
-
+*.csv
+*.xlsx
 # Vagrant
 .vagrant/
 
