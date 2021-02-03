@@ -2,18 +2,49 @@ import math
 from collections import namedtuple
 import pandas as pd
 from Standard_materials import materials
+import joblib
+import torch
+import numpy as np
 
 
 class User_input():
 
     def __init__(self):
         self.data = None
+        self.gp_input = None
+        self.gp_input_raw = None
         self.loaded = False
 
     def read_data(self, filename):
         self.data = pd.read_excel(filename, index_col=None, header=None)
         self.loaded = True
 
+    def read_gp_input(self, filename, config):
+        gp_input = pd.read_excel(filename, index_col=None, header=None)
+        gp_input.drop(gp_input.columns[0], axis=1, inplace=True)
+        gp_input = gp_input.transpose()
+        gp_input.columns = gp_input.iloc[0]
+        gp_input.drop(gp_input.index[0], inplace=True)
+
+        input_scale = joblib.load("input_scale.pkl")
+        input_scale = input_scale[config]
+
+        gp_input["m_m_a"] = gp_input["m_m_a"] - gp_input["m_m_h"] * (gp_input["c_h"] - 0.8)
+        gp_input["t_m_a"] = gp_input["t_m_a"] - gp_input["t_m_l"] * gp_input["t_wd"]
+        crane_direction = 1
+        if config == "m1":
+            # if gp_input["m_cg_x"] > 0.5:
+            #     gp_input["l_cg_x"] = 1 - gp_input["l_cg_x"]
+            #     crane_direction = -1
+            gp_input["l_cg_x"] = (gp_input["l_cg_x"] - gp_input["m_cg_x"]) * gp_input["t_wd"]
+        self.gp_input_raw = gp_input.copy()
+        gp_input = gp_input.to_numpy()
+        for idx, row in enumerate(gp_input):
+            gp_input[idx, :] = (row - input_scale["min"]) / input_scale["diff"]
+
+        self.gp_input = torch.from_numpy(np.vstack(gp_input[:, :]).astype(np.float64)).double()
+        return crane_direction
+    
     def rearrange_data(self):
         self.data = self.data.transpose()
         self.data.columns = self.data.iloc[0]
@@ -29,6 +60,7 @@ class Part():
         self.F_sd_s = None
         self.F_rd_s = None
         self.F_rd_f = None
+        self.d = None
         self.fullfilment_fatigue_strength = None
         self.fullfilment_static_strength = None
 
@@ -185,7 +217,7 @@ class RBG():
             self.rail.fullfilment_fatigue_strength = True
         else:
             self.rail.fullfilment_fatigue_strength = False
-   
+
         if self.rail.F_sd_s <= self.rail.F_rd_s():
             self.rail.fullfilment_static_strength = True
         else:
