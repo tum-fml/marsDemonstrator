@@ -1,8 +1,8 @@
 import unittest
 import pathlib
 import numpy as np
-
 from marsDemonstrator.designMethods.en_13001_3_3 import User_input
+# from designMethods.en_13001_3_3 import User_input
 from marsDemonstrator.designMethods.en_13001_3_3 import Computed_data
 from marsDemonstrator.designMethods.en_13001_3_3 import Computation
 
@@ -13,7 +13,7 @@ class En_test(unittest.TestCase):
         self.direction = 1
         parent_path = pathlib.Path(__file__).parent.absolute()
         # input_file = "C://Dokumente//MARS//design-methods//inputparameters.xlsx"
-        input_file = parent_path  / "testdata"  / "test_inputparameters_m1_l.xlsx"
+        input_file = parent_path / "test" / "testdata"  / "test_inputparameters_m1_l.xlsx"
         self.my_input = User_input()
         self.my_input.load_gp_input(input_file, "configuration", "m1")
         self.my_input.load_parameter_input(input_file, "Input_variables")
@@ -22,7 +22,7 @@ class En_test(unittest.TestCase):
         self.my_input.parameters.compute_f_f3()
         self.my_input.parameters.compute_contact_and_f_1()
         self.en_computation = None
-        self.computed_data = self.computed_data = Computed_data()
+        self.computed_data = Computed_data()
 
     def test_material_parameters(self):
         np.testing.assert_almost_equal(list(self.my_input.parameters.data["E_rail"]), list(self.my_input.parameters.materials["rail"]["E"])) 
