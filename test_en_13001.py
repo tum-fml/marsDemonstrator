@@ -13,7 +13,7 @@ class En_test(unittest.TestCase):
         self.direction = 1
         parent_path = pathlib.Path(__file__).parent.absolute()
         # input_file = "C://Dokumente//MARS//design-methods//inputparameters.xlsx"
-        input_file = parent_path  / "testdata"  / "test_inputparameters_m1_l.xlsx"
+        input_file = parent_path  / "test" / "testdata"  / "test_inputparameters_m1_l.xlsx"
         self.my_input = User_input()
         self.my_input.load_gp_input(input_file, "configuration", "m1")
         self.my_input.load_parameter_input(input_file, "Input_variables")
