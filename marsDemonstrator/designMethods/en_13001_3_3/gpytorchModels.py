@@ -76,9 +76,7 @@ class ExactGPModel(ExactGP):
     def load_cache(self, pred_dict, x):
         self.likelihood.noise = 1e-3
         with torch.no_grad(), gp.settings.memory_efficient(), gp.settings.fast_pred_samples(), gp.settings.fast_pred_var(), gp.settings.max_cg_iterations(100):
-            stime = time.time()
             self(x[0:1, :])
-            print(time.time() - stime)
             self.prediction_strategy.mean_cache.data = pred_dict["mean_cache_data"]
             self.prediction_strategy.covar_cache.data = pred_dict["covar_cache_data"]
 

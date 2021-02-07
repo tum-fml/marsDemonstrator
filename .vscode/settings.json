@@ -24,7 +24,7 @@
 
     "python.autoComplete.extraPaths": [
 
-      "GaussianProcesses"
+      "marsDemonstrator"
 
   ],
 
@@ -63,7 +63,7 @@
       "editor.defaultFormatter": "ms-python.python"
     },
     "python.analysis.extraPaths": [
-      "GaussianProcesses", "EN 13001-3-3"
+      "marsDemonstrator"
     ],
     "jupyter.sendSelectionToInteractiveWindow": true,
     "jupyter.askForKernelRestart": false,
