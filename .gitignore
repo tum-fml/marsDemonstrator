@@ -2,7 +2,7 @@
 .vscode/
 .idea/
 *.csv
-*.xlsx
+# *.xlsx
 *.mat
 *.json
 # Vagrant
@@ -10,6 +10,12 @@
 
 # Mac/OSX
 .DS_Store
+
+# test predictions
+test_pred*
+test_fsd*
+*output*xlsx
+*_orig.xlsx
 
 # Windows
 Thumbs.db
