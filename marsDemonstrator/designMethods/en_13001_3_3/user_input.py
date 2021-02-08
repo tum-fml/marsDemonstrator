@@ -18,11 +18,11 @@ class User_input():
         self.config_loaded = None
 
     def load_gp_input(self, filename, sheetname, config):
-        self.gp_input.read(filename, sheetname,)
+        self.gp_input.read(filename, sheetname)
         self.gp_input.rearange(config)
 
     def load_parameter_input(self, filename, sheetname):
-        self.parameters.read(filename, sheetname,)
+        self.parameters.read(filename, sheetname)
         self.parameters.rearange()
 
     def load_material_input(self, filename, sheetname_rail, sheetname_wheel):
