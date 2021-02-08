@@ -7,7 +7,6 @@ from designMethods.en_13001_3_3 import User_input
 from designMethods.en_13001_3_3 import Computed_data
 from designMethods.en_13001_3_3 import Computation
 
-
 def build_graphical_interface():
     direction = 1
     # init input object
