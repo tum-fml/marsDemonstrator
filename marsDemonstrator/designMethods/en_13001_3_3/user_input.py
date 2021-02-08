@@ -22,7 +22,7 @@ class User_input():
         self.gp_input.rearange(config)
 
     def load_parameter_input(self, filename, sheetname):
-        self.parameters.read(filename, sheetname,)
+        self.parameters.read(filename, sheetname)
         self.parameters.rearange()
 
     def load_material_input(self, filename, sheetname_rail, sheetname_wheel):
