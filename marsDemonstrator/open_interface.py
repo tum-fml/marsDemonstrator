@@ -6,6 +6,7 @@ from tkinter import (Button,  Label, OptionMenu,  # explizit --> besser
 from designMethods.en_13001_3_3 import User_input
 from designMethods.en_13001_3_3 import Computed_data
 from designMethods.en_13001_3_3 import Computation
+from output import create_output_file
 
 def build_graphical_interface():
     direction = 1
@@ -41,6 +42,9 @@ def build_graphical_interface():
             en_computation = Computation(en_13001_input, en_13001_computed)
             en_computation.compute_pre_F_rd_all()
             en_computation.compute_F_rd_all()
+            en_computation.compute_proofs_all()
+            en_computation.load_results_all()
+            create_output_file(en_computation, "test_output.xlsx")
         else:
             print("Please upload an excel file")
             Label(interface, text="Please upload an excel file", font=fontStyle2, fg="red").place(x=100, y=280)
