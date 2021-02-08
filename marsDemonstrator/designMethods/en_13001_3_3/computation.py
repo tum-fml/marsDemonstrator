@@ -61,6 +61,11 @@ class Computation():
         self.wheel_r.compute_proofs()
         self.rail.compute_proofs()
 
+    def load_results_all(self):
+        self.wheel_f.load_results()
+        self.wheel_r.load_results()
+        self.rail.load_results()
+
     # def compute_min_d(self):
     #     min_d_r_s = self.rail.compute_min_d_s()
     #     min_d_r_f = self.rail.compute_min_d_f()
@@ -89,6 +94,7 @@ class Part():
         self.proofs = {"static": None, "fatigue": pd.DataFrame()}
         self.load_collective = computed_data.load_collective[part]
         self.z = None
+        self.results = {}
 
     def compute_z(self, design_param, D_w):
         point = design_param["contact"] == "point"
@@ -150,6 +156,28 @@ class Part():
         self.proofs["static"] = self.F_sd <= self.F_rd["F_rd_s"]
         self.proofs["fatigue"]["preds"] = self.F_sd <= self.F_rd["F_rd_f"]["preds"]
         self.proofs["fatigue"]["upper"] = self.F_sd <= self.F_rd["F_rd_f"]["upper"]
+
+    def load_results(self):
+        self.results["static"] = pd.DataFrame({
+            "F_sd_s": self.F_sd,
+            "F_rd_s": self.F_rd["F_rd_s"],
+            "Fulfilled": self.proofs["static"]
+        })
+
+        self.results["fatigue"] = {"prediction": {}, "upper_confidence": {}}
+        self.results["fatigue"] = pd.DataFrame({
+            "F_sd_f": self.F_sd,
+            "F_u": self.F_rd["F_u"],
+            "v_c": self.load_collective["v_c"],
+            "k_c_pred": self.load_collective["k_c"]["preds"],
+            "s_c_pred": self.load_collective["s_c"]["preds"],
+            "F_rd_f_pred": self.F_rd["F_rd_f"]["preds"],
+            "Fulfilled_pred": self.proofs["fatigue"]["preds"],
+            "k_c_upper": self.load_collective["k_c"]["upper"],
+            "s_c_upper": self.load_collective["s_c"]["upper"],
+            "F_rd_f_upper": self.F_rd["F_rd_f"]["upper"],
+            "Fulfilled_upper": self.proofs["fatigue"]["preds"]
+        })
 
     # @abc.abstractmethod
     # def compute_v_c(self):
