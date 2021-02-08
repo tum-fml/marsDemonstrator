@@ -48,7 +48,7 @@ def build_graphical_interface():
             create_output_file(en_computation, "test_output.xlsx")
         else:
             print("Please upload an excel file")
-            Label(interface, text="Please upload an excel file", font=fontStyle2, fg="red").place(x=100, y=280)
+            Label(interface, text="Please upload an excel file", font=fontStyle2, fg="red").place(x=300, y=250)
 
     # init tk inter
     interface = Tk()
@@ -64,22 +64,22 @@ def build_graphical_interface():
     Label(interface, text="WELCOME TO MARS", font=fontStyle).grid(padx=30, pady=10)
 
     # fields for uploading excel file
-    Label(interface, text="Upload the Excel-file:", font=fontStyle2).place(x=10, y=400)
-    Button(interface, text="Open file", command=read_input_file, font=fontStyle2).place(x=200, y=400)
+    Label(interface, text="Upload the Excel-file:", font=fontStyle2).place(x=10, y=300)
+    Button(interface, text="Open file", command=read_input_file, font=fontStyle2).place(x=200, y=300)
 
     # dropdown for mast configurateion
     Label(interface, text="choose mast configuration:", font=fontStyle2).place(x=10, y=360)
     dropdown_config = StringVar(value="m1")
     OptionMenu(interface, dropdown_config, "m1", "m2").place(x=250, y=360)
-    Button(interface, text="Update configuration", command=init_gps, font=fontStyle2).place(x=100, y=400)
+    Button(interface, text="Update configuration", command=init_gps, font=fontStyle2).place(x=350, y=360)
 
     # dropdown for computation mode
-    Label(interface, text="Please choose the desired mode", font=fontStyle2).place(x=10, y=80)
+    Label(interface, text="Please choose the desired mode:", font=fontStyle2).place(x=10, y=80)
     dropdown_mode = StringVar(value="proof")
-    OptionMenu(interface, dropdown_mode, "proof", "min_diameter").place(x=40, y=100)
+    OptionMenu(interface, dropdown_mode, "proof", "min_diameter").place(x=280, y=80)
 
     # start button
-    Button(interface, text="Start", font=fontStyle1, width=40, command=start_computation).place(x=300, y=500)
+    Button(interface, text="Start computation", font=fontStyle1, width=40, command=start_computation).place(x=300, y=500)
     return interface
 
 
