@@ -20,6 +20,7 @@ def build_graphical_interface():
         Label(interface, text=f"Selected: {filename}", font=fontStyle2, fg="blue").place(x=300, y=250)
         en_13001_input.load_gp_input(filename, "configuration", "m1")
         en_13001_input.load_parameter_input(filename, "Input_variables")
+        en_13001_input.prepare_for_output()
         en_13001_input.load_material_input(filename, "rail_materials", "wheel_materials")
         en_13001_input.set_materials_and_geometry()
         en_13001_input.parameters.compute_f_f3()
@@ -45,7 +46,7 @@ def build_graphical_interface():
             en_computation.compute_F_rd_all()
             en_computation.compute_proofs_all()
             en_computation.load_results_all()
-            create_output_file(en_computation, "test_output.xlsx")
+            create_output_file(en_computation, en_13001_input, "test_output.xlsx")
         else:
             print("Please upload an excel file")
             Label(interface, text="Please upload an excel file", font=fontStyle2, fg="red").place(x=300, y=250)
