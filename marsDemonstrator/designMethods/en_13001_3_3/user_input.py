@@ -14,6 +14,7 @@ class User_input():
         self.gp_input = GPInput()
         self.parameters = ParameterInput()
         self.materials = MaterialInput()
+        self.output = None
         self.config = None
         self.config_loaded = None
 
@@ -32,6 +33,10 @@ class User_input():
     def set_materials_and_geometry(self):
         self.parameters.set_material_parameters(self.materials)
         self.parameters.set_geometry_parameters()
+
+    def prepare_for_output(self):
+        self.output = {"parameters": self.parameters.data.transpose(),
+                       "configuration": self.gp_input.raw.transpose()}
 
 
 class GPInput():
