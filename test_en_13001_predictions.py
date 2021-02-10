@@ -13,9 +13,9 @@ class En_test(unittest.TestCase):
         self.parent_path = pathlib.Path(__file__).parent.absolute()
         self.my_input = EN_input()
         self.computed_data = Computed_data()
+        self.input_file = self.parent_path  / "test" / "testdata"  / "test_inputparameters_m1_l.xlsx"
 
     def test_predicted_data(self):
-        self.input_file = self.parent_path  / "test" / "testdata"  / "test_inputparameters_m1_l.xlsx"
         self.my_input.load_gp_input(self.input_file, "configuration")
         self.my_input.load_parameter_input(self.input_file, "Input_variables")
         self.my_input.recompute_gp_data("m1")        

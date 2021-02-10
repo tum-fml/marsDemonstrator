@@ -267,7 +267,7 @@ class ParameterInput():
         if error_mats:
             idx = np.where(np.logical_or((self.data["material_wheel"].isin(error_mats)), (self.data["material_rail"].isin(error_mats))))
             return idx[0]
-        return [[]]
+        return []
 
     def compute_f_f3(self):
         self.data["f_f3"] = (0.005 / self.data["alpha"]) ** (1 / 3)
