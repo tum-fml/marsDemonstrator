@@ -1,11 +1,11 @@
 import numbers
 import pathlib
+from itertools import chain
 
 import joblib
 import numpy as np
 import pandas as pd
 import torch
-from itertools import chain
 
 mypath = pathlib.Path(__file__).parent.absolute()
 
@@ -29,14 +29,11 @@ class EN_input():
     def load_parameter_input(self, filename, sheetname):
         self.parameters.read(filename, sheetname)
         self.parameters.rearrange()
-        # self.parameters.check(self.materials)
-        # self.error_report.append(self.parameters.write_error_report())
 
     def load_material_input_check(self, filename, sheetname_rail, sheetname_wheel):
         self.materials.read(filename, sheetname_rail, sheetname_wheel)
         error_report, error_mats = self.materials.get_errors()
         self.error_report.append(error_report)
-        # self.parameters.get_material_error_runs(error_mats)
         self.error_configs.append(list(self.parameters.get_material_error_runs(error_mats)))
 
     def perform_error_checks(self):
@@ -61,7 +58,6 @@ class EN_input():
         self.gp_input.error_check.num_runs = len(self.gp_input.raw)
 
     def recompute_gp_data(self, config):
-        # self.config = config
         self.gp_input.recompute(config)
 
     def set_materials_and_geometry(self):
@@ -265,6 +261,7 @@ class ParameterInput():
         for part, param_name in zip(["wheel", "rail"], ["material_wheel", "material_rail"]):
             materials_part = getattr(materials_all, part)
             self.materials[part] = materials_part.loc[self.data[param_name]]
+            self.materials[part].index = range(len(self.materials[part]))
 
     def get_material_error_runs(self, error_mats):
         if error_mats:

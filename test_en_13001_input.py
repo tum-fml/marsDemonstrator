@@ -44,5 +44,6 @@ class En_test(unittest.TestCase):
         np.testing.assert_almost_equal(list(self.my_input.parameters.data["r_k_b_min_test"]), list(self.my_input.parameters.data["r_k_b_min"]))
         np.testing.assert_almost_equal(list(self.my_input.parameters.data["f_f3"]), list(self.my_input.parameters.data["f_ff3_test"]))
 
+
 if __name__ == "__main_":
     unittest.main()

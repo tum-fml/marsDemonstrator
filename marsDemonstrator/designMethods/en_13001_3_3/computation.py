@@ -12,11 +12,11 @@ class Computation():
     # functions
     def __init__(self, user_input, computed_data):
         input_df = user_input.parameters.data
-        self.des_params = {"b": input_df["b_min"],
-                           "f_1": input_df["f_1"],
-                           "f_2": input_df["f_2"],
-                           "w": input_df["w"],
-                           "contact": input_df["contact"]}
+        self.des_params = pd.DataFrame({"b": input_df["b_min"],
+                                        "f_1": input_df["f_1"],
+                                        "f_2": input_df["f_2"],
+                                        "w": input_df["w"],
+                                        "contact": input_df["contact"]})
         self.coefficients = Coefficients(1.1, 1.1, 10/3, 1)
         self.wheel_f = Wheel(user_input, computed_data, "wheel", "wf")
         self.wheel_r = Wheel(user_input, computed_data, "wheel", "wr")

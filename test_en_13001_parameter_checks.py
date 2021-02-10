@@ -18,7 +18,7 @@ class En_test(unittest.TestCase):
     def test_error_material_errors(self):
         self.my_input.materials.read(self.input_file, "rail_materials", "wheel_materials")
         _, error_mats = self.my_input.materials.get_errors()
-        expected_result = ["GE-300"]
+        expected_result = ["GE-300", "S235"]
         result = error_mats
         self.assertEqual(result, expected_result)
 
@@ -51,9 +51,9 @@ class En_test(unittest.TestCase):
 
         expected_results = [
             "value error in configuration no. 1; error variable: material_wheel; " 
-                + "expected value from: ['GE-300', 'EN-GJS600-3', 'EN-GJS700-2', '25CrMo4', '34CrMo4', '42CrMo4', '33NiCrMoV14-5', '42CrMo4-hardened']",
+            + "expected value from: ['GE-300', 'EN-GJS600-3', 'EN-GJS700-2', '25CrMo4', '34CrMo4', '42CrMo4', '33NiCrMoV14-5', '42CrMo4-hardened']",
             "value error in configuration no. 3; error variable: material_wheel; "
-                + "expected value from: ['GE-300', 'EN-GJS600-3', 'EN-GJS700-2', '25CrMo4', '34CrMo4', '42CrMo4', '33NiCrMoV14-5', '42CrMo4-hardened']",
+            + "expected value from: ['GE-300', 'EN-GJS600-3', 'EN-GJS700-2', '25CrMo4', '34CrMo4', '42CrMo4', '33NiCrMoV14-5', '42CrMo4-hardened']",
             "value error in configuration no. 3; error variable: contact; expected value from: ['point', 'line']"
         ]
 
@@ -84,7 +84,8 @@ class En_test(unittest.TestCase):
         self.my_input.gp_input.modify_input_scales()
         self.my_input.gp_input.parse_value_check_data()
         self.my_input.gp_input.error_check.check_values()
-        error_report, error_config =  self.my_input.gp_input.error_check.get_error_reports()
-        
+        error_report, error_config = self.my_input.gp_input.error_check.get_error_reports()
+
+
 if __name__ == "__main_":
     unittest.main()

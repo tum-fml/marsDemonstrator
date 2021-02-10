@@ -8,7 +8,7 @@ from marsDemonstrator.designMethods.en_13001_3_3 import Computation
 
 
 class En_test(unittest.TestCase):
-    
+
     def setUp(self):
         self.config = "m1"
         self.direction = 1
@@ -32,12 +32,10 @@ class En_test(unittest.TestCase):
         self.computed_data.compute_F_sd_f_all(self.my_input.gp_input.raw, self.config, self.direction)
         self.load_k_c()
         if any(self.my_input.parameters.data["F_sd_f_w"] > 0):
-            # print("recompute wheels")
             self.computed_data.recompute_kc(self.my_input.parameters.data["F_sd_f_w"], "wf")
             self.computed_data.recompute_kc(self.my_input.parameters.data["F_sd_f_w"], "wr")
 
         if any(self.my_input.parameters.data["F_sd_f_r"] > 0):
-            # print("recompute rail")
             self.computed_data.recompute_kc(self.my_input.parameters.data["F_sd_f_r"], "r")
 
         np.testing.assert_almost_equal(list(self.my_input.parameters.data["k_c_rail_preds_new"]), list(self.computed_data.load_collective["r"]["k_c"]["preds"]))
