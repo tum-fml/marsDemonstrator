@@ -10,7 +10,7 @@ def create_output_file(en_computation, en_input, res_name):
         init_df.to_excel(writer, sheet_name="output")
         num_computations = len(en_computation.wheel_f.results["static"])
         sheet = writer.sheets["output"]
-        sheet.set_column(2, 2, 30)
+        sheet.set_column(2, 2, 43)
         sheet.set_column(3, (num_computations + 3), 18, formats["all"])
         start_row_second_level = 0
         start_row_first_level = 0
