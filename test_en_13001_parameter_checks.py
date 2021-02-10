@@ -18,7 +18,7 @@ class En_test(unittest.TestCase):
     def test_error_material_errors(self):
         self.my_input.materials.read(self.input_file, "rail_materials", "wheel_materials")
         _, error_mats = self.my_input.materials.get_errors()
-        expected_result = ["GE-300"]
+        expected_result = ["GE-300", "S235"]
         result = error_mats
         self.assertEqual(result, expected_result)
 

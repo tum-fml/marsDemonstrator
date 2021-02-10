@@ -265,12 +265,13 @@ class ParameterInput():
         for part, param_name in zip(["wheel", "rail"], ["material_wheel", "material_rail"]):
             materials_part = getattr(materials_all, part)
             self.materials[part] = materials_part.loc[self.data[param_name]]
+            self.materials[part].index = range(len(self.materials[part]))
 
     def get_material_error_runs(self, error_mats):
         if error_mats:
             idx = np.where(np.logical_or((self.data["material_wheel"].isin(error_mats)), (self.data["material_rail"].isin(error_mats))))
             return idx[0]
-        return [[]]
+        return []
 
     def compute_f_f3(self):
         self.data["f_f3"] = (0.005 / self.data["alpha"]) ** (1 / 3)

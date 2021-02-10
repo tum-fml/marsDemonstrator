@@ -8,7 +8,7 @@ from marsDemonstrator.designMethods.en_13001_3_3 import Computation
 
 
 class En_test(unittest.TestCase):
-    
+
     def setUp(self):
         self.config = "m1"
         self.direction = 1

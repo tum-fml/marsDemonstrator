@@ -1,41 +1,48 @@
-import tkinter.font as tkFont
+import pathlib
 # from tkinter import * implizit --> nicht gut
 # from tkinter import (Button,  Label, OptionMenu,  # explizit --> besser
 #                    StringVar, Tk, filedialog)
 import tkinter as tk
+import tkinter.font as tkFont
 from tkinter import filedialog
-# import tkinter as tk # alternative; im Code dann tk.Button etc.
-from designMethods.en_13001_3_3 import User_input
-from designMethods.en_13001_3_3 import Computed_data
-from designMethods.en_13001_3_3 import Computation
-from output import create_output_file
 
-import pathlib
+# import tkinter as tk # alternative; im Code dann tk.Button etc.
+from designMethods.en_13001_3_3 import Computation, Computed_data, EN_input
+from output import create_output_file
 
 
 def build_graphical_interface():
     direction = 1
     # init input object
-    en_13001_input = User_input()
+    en_13001_input = EN_input()
     en_13001_computed = Computed_data()
     gen_vars = {"num_run": 1}
-    
+
     def read_input_file():
         filename = filedialog.askopenfilename()
         gen_vars["msg"].set(f"Selected: {filename}")
         gen_vars["filename"] = pathlib.Path(filename).absolute()
-        en_13001_input.load_gp_input(gen_vars["filename"], "configuration", "m1")
-        en_13001_input.load_material_input(gen_vars["filename"], "rail_materials", "wheel_materials")
+
+        # load data for load collective prediction
+        en_13001_input.load_gp_input(gen_vars["filename"], "configuration")
+
+        # load material and en 13001 parameters
+        en_13001_input.load_material_input_check(gen_vars["filename"], "rail_materials", "wheel_materials")
         en_13001_input.load_parameter_input(gen_vars["filename"], "Input_variables")
-        en_13001_input.prepare_for_output()
-        en_13001_input.set_materials_and_geometry()
+        
+        # check for input errors and drop faulty configurations
+        en_13001_input.perform_error_checks()
+        en_13001_input.drop_error_configs()
+
+        # precompute factors and material parameters
         en_13001_input.parameters.compute_f_f3()
         en_13001_input.parameters.compute_contact_and_f_1()
+        en_13001_input.set_materials_and_geometry()
 
     def init_gps():
-        config = dropdown_config.get()
+        en_13001_input.config = dropdown_config.get()
         gp_configs = {"m1": {1: "m1l", -1: "m1r"}, "m2": {1: "m2"}}
-        gp_config = gp_configs[config][direction]
+        gp_config = gp_configs[en_13001_input.config][direction]
         parts = ["wf", "wr", "r"]
         en_13001_computed.get_gps_kc(gp_config, parts)
         en_13001_input.config_loaded = True
@@ -49,13 +56,19 @@ def build_graphical_interface():
         if en_13001_input.config_loaded is None:
             init_gps()
 
+        en_13001_input.recompute_gp_data(en_13001_input.config)
         en_13001_computed.predict_kc(en_13001_input.gp_input.norm)
         en_13001_computed.compute_F_sd_f_all(en_13001_input.gp_input.raw, en_13001_input.config, direction)
         en_13001_computed.predict_travelled_dist(en_13001_input.parameters.data)
+
+        # create computation instance and compute configs
         en_computation = Computation(en_13001_input, en_13001_computed)
         en_computation.compute_pre_F_rd_all()
         en_computation.compute_F_rd_all()
         en_computation.compute_proofs_all()
+
+        # reults output
+        en_13001_input.prepare_for_output()
         en_computation.load_results_all()
         gen_vars["outname"] = gen_vars["filename"].parent.absolute() / f"output_no{gen_vars['num_run']}.xlsx"
         create_output_file(en_computation, en_13001_input, gen_vars["outname"])
@@ -97,8 +110,3 @@ def build_graphical_interface():
     # start button
     tk.Button(interface, text="Start computation", font=fontStyle1, width=40, command=start_computation).place(x=300, y=500)
     return interface
-
-
-if __name__ == "__main__":
-    mars_interface = build_graphical_interface()
-    mars_interface.mainloop()
