@@ -73,12 +73,6 @@ class Computation():
     #     min_d_w_f = self.wheel.compute_min_d_f()
     #     self.wheel.min_d = max(min_d_r_s, min_d_r_f, min_d_w_s, min_d_w_f)
 
-    # def compute_condition_fullfilment(self):
-    #     self.wheel.fullfilment_fatigue_strength = True if self.wheel.F_sd_f <= self.wheel.F_rd_f else False
-    #     self.wheel.fullfilment_static_strength = True if self.wheel.F_sd_s <= self.wheel.F_rd_s else False
-    #     self.rail.fullfilment_fatigue_strength = True if self.rail.F_sd_f <= self.rail.F_rd_f else False
-    #     self.rail.fullfilment_static_strength = True if self.rail.F_sd_s <= self.rail.F_rd_s() else False
-
 
 class Part():
 
@@ -166,11 +160,11 @@ class Part():
 
         self.results["fatigue"] = {"prediction": {}, "upper_confidence": {}}
         self.results["fatigue"] = pd.DataFrame({
-            "F_sd_f": self.F_sd,
-            "F_u": self.F_rd["F_u"],
-            "v_c": self.load_collective["v_c"],
-            "k_c_pred": self.load_collective["k_c"]["preds"],
-            "s_c_pred": self.load_collective["s_c"]["preds"],
+            "Bemessungskontaktkraft-F_sd_f[kN]": self.F_sd / 1000,
+            "Bezugskontaktkraft-F_u": self.F_rd["F_u"] / 1000,
+            "Rollkontakte-v_c": self.load_collective["v_c"],
+            "Kontaktkraftkollektivbeiwert-k_c_pred": self.load_collective["k_c"]["preds"],
+            "Kontaktverlaufsparameter-s_c_pred": self.load_collective["s_c"]["preds"],
             "F_rd_f_pred": self.F_rd["F_rd_f"]["preds"],
             "Fulfilled_pred": self.proofs["fatigue"]["preds"],
             "k_c_upper": self.load_collective["k_c"]["upper"],
