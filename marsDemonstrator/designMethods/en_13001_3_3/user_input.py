@@ -53,8 +53,11 @@ class EN_input():
     def drop_error_configs(self):
         self.error_configs = list(set(chain(*self.error_configs)))
         self.parameters.data.drop(self.error_configs, inplace=True)
+        self.parameters.data.index = range(len(self.parameters.data))
         self.gp_input.raw.drop(self.error_configs, inplace=True)
+        self.gp_input.raw.index = range(len(self.parameters.data))
         self.gp_input.raw_out.drop(self.error_configs, inplace=True)
+        self.gp_input.raw_out.index = range(len(self.parameters.data))
         self.gp_input.error_check.num_runs = len(self.gp_input.raw)
 
     def recompute_gp_data(self, config):
