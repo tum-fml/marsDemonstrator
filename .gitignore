@@ -132,3 +132,6 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# model files
+marsDemonstrator/designMethods/en_13001_3_3/gps*pkl

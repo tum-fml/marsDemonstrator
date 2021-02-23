@@ -25,7 +25,7 @@ class Computation():
 
     def load_data(self, user_input: EN_input, predicted_data: LoadCollectivePrediction):
         # data frame with data for en computation
-        input_df = user_input.parameters.data
+        input_df = user_input.parameters.gen_params
 
         # design parameters for en computation
         self.des_params = pd.DataFrame({"b": input_df["b_min"],
@@ -147,8 +147,8 @@ class Part():
 
         # factors for computing F_rd_f
         self.factors = {"f_f2": 1,
-                        "f_f3": user_input.parameters.data["f_f3"].to_numpy(),
-                        "f_f4": user_input.parameters.data["f_f4"].to_numpy(),
+                        "f_f3": user_input.parameters.gen_params["f_f3"].to_numpy(),
+                        "f_f4": user_input.parameters.gen_params["f_f4"].to_numpy(),
                         "f_ff": None}
 
         # dictionary for F_rd_s and F_rd_f (pred and upper)
