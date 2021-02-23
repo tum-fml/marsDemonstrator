@@ -7,8 +7,8 @@ import tkinter.font as tkFont
 from tkinter import filedialog
 
 # import tkinter as tk # alternative; im Code dann tk.Button etc.
-from designMethods.en_13001_3_3 import Computation, Computed_data, EN_input
-from output import create_output_file
+from ..designMethods.en_13001_3_3 import Computation, LoadCollectivePrediction, EN_input
+from .output import create_output_file
 
 
 class MarsGUI():
@@ -18,7 +18,7 @@ class MarsGUI():
         self.direction = 1
         # init input object
         self.en_13001_input = EN_input()
-        self.en_13001_computed = Computed_data()
+        self.en_13001_predicted = LoadCollectivePrediction()
         self.gen_vars = {"num_run": 1}
         # init tk inter
 
@@ -82,7 +82,7 @@ class MarsGUI():
         gp_configs = {"m1": {1: "m1l", -1: "m1r"}, "m2": {1: "m2"}}
         gp_config = gp_configs[self.en_13001_input.config][self.direction]
         parts = ["wf", "wr", "r"]
-        self.en_13001_computed.get_gps_kc(gp_config, parts)
+        self.en_13001_predicted.get_gps_kc(gp_config, parts)
         self.en_13001_input.config_loaded = True
 
     def start_computation(self):
@@ -95,12 +95,12 @@ class MarsGUI():
             self.init_gps()
 
         self.en_13001_input.recompute_gp_data(self.en_13001_input.config)
-        self.en_13001_computed.predict_kc(self.en_13001_input.gp_input.norm)
-        self.en_13001_computed.compute_F_sd_f_all(self.en_13001_input.gp_input.raw, self.en_13001_input.config, self.direction)
-        self.en_13001_computed.predict_travelled_dist(self.en_13001_input.parameters.data)
+        self.en_13001_predicted.predict_kc(self.en_13001_input.gp_input.norm)
+        self.en_13001_predicted.compute_F_sd_f_all(self.en_13001_input.gp_input.raw, self.en_13001_input.config, self.direction)
+        self.en_13001_predicted.predict_travelled_dist(self.en_13001_input.parameters.data)
 
         # create computation instance and compute configs
-        en_computation = Computation(self.en_13001_input, self.en_13001_computed)
+        en_computation = Computation(self.en_13001_input, self.en_13001_predicted)
         en_computation.compute_pre_F_rd_all()
         en_computation.compute_F_rd_all()
         en_computation.compute_proofs_all()

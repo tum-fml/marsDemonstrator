@@ -2,27 +2,49 @@ import math
 from collections import namedtuple
 import numpy as np
 import pandas as pd
+from .user_input import EN_input
+from .predictions import LoadCollectivePrediction
 # import abc
 
+# fixed coefficients
 Coefficients = namedtuple("Coefficients", ["Y_m", "Y_cf", "m", "Y_p"])
 
 
 class Computation():
-
+    """Class for doing all computations
+    """
     # functions
-    def __init__(self, user_input, computed_data):
+    def __init__(self):
+        self.des_params = None
+        self.coefficients = self.coefficients = Coefficients(1.1, 1.1, 10/3, 1)
+        self.wheel_f = None
+        self.wheel_r = None
+        self.rail = None 
+        self.D_w = None
+        self.v_c_data = None
+
+    def load_data(self, user_input: EN_input, predicted_data: LoadCollectivePrediction):
+        # data frame with data for en computation
         input_df = user_input.parameters.data
+
+        # design parameters for en computation
         self.des_params = pd.DataFrame({"b": input_df["b_min"],
                                         "f_1": input_df["f_1"],
                                         "f_2": input_df["f_2"],
                                         "w": input_df["w"],
+                                        "r_k": input_df["r_k"],
                                         "contact": input_df["contact"]})
-        self.coefficients = Coefficients(1.1, 1.1, 10/3, 1)
-        self.wheel_f = Wheel(user_input, computed_data, "wheel", "wf")
-        self.wheel_r = Wheel(user_input, computed_data, "wheel", "wr")
-        self.rail = Rail(user_input, computed_data, "rail", "r")
-        self.v_c_data = {"travelled_dist": computed_data.travelled_dist, "num_cycles": input_df["num_cycles"]}
-        self.D_w = input_df["D_w"]
+        
+        # wheels and rail as attributes
+        self.wheel_f = Wheel(user_input, predicted_data, "wheel", "wf")
+        self.wheel_r = Wheel(user_input, predicted_data, "wheel", "wr")
+        self.rail = Rail(user_input, predicted_data, "rail", "r")
+
+        # data for computing v_c
+        self.v_c_data = {"travelled_dist": predicted_data.travelled_dist, "num_cycles_wheel": input_df["num_cycles_wheel"], "num_cycles_rail": input_df["num_cycles_rail"]}
+
+        # wheel diameter as extra attribute because of its importance
+        self.D_w = user_input.parameters.geometries["wheel"]["D"]
 
     def compute_E_m(self):
         self.des_params["E_m"] = ((2*self.wheel_f.material["E"]*self.rail.material["E"]) / 
@@ -31,36 +53,44 @@ class Computation():
     def compute_pre_F_rd_all(self):
         self.compute_E_m()
 
+        # compute z for wheels and rail
         self.wheel_f.compute_z(self.des_params, self.D_w)
         self.wheel_r.compute_z(self.des_params, self.D_w)
         self.rail.compute_z(self.des_params, self.D_w)
 
+        # compute f_ff for wheels and rail
         self.wheel_f.compute_f_ff(self.des_params)
         self.wheel_r.compute_f_ff(self.des_params)
         self.rail.compute_f_ff(self.des_params)
 
+        # compute F_rd for static proof for wheels and rail
         self.wheel_f.compute_F_rd_s(self.coefficients, self.des_params, self.D_w)
         self.wheel_r.compute_F_rd_s(self.coefficients, self.des_params, self.D_w)
         self.rail.compute_F_rd_s(self.coefficients, self.des_params, self.D_w)
 
+        # compute F_u for F_rd_f for wheels and rail
         self.wheel_f.compute_F_u(self.des_params, self.D_w)
         self.wheel_r.compute_F_u(self.des_params, self.D_w)
         self.rail.compute_F_u(self.des_params, self.D_w)
 
+        # compute s_c for wheels and rail
         self.wheel_f.compute_s_c(self.D_w, self.v_c_data["travelled_dist"])
         self.wheel_r.compute_s_c(self.D_w, self.v_c_data["travelled_dist"])
-        self.rail.compute_s_c(self.v_c_data["num_cycles"])
+        self.rail.compute_s_c(self.v_c_data["num_cycles_rail"])
 
+    # finish computing F_rd_f for wheels and rail
     def compute_F_rd_all(self):
         self.wheel_f.compute_F_rd_f(self.coefficients)
         self.wheel_r.compute_F_rd_f(self.coefficients)
         self.rail.compute_F_rd_f(self.coefficients)
 
+    # compute all proofs
     def compute_proofs_all(self):
         self.wheel_f.compute_proofs()
         self.wheel_r.compute_proofs()
         self.rail.compute_proofs()
 
+    # prepare results for output
     def load_results_all(self):
         self.wheel_f.load_results()
         self.wheel_r.load_results()
@@ -76,24 +106,73 @@ class Computation():
 
 class Part():
 
-    def __init__(self, user_input, computed_data, part_type, part):
+    """Parent class for wheel and rail
+
+    Attributes:
+    -----------
+    
+    material: DataFrame
+        material parameters of rail / wheel
+
+    geometry: DataFrame
+        geometry parameters of rail / wheel
+
+    factors: Dict
+        Factors needed to compute F_rd_f
+
+    F_rd: Dict
+        F_rd_s, F_rd_f, F_u
+
+    F_sd:
+        F_sd_f and F_sd_s are the same
+
+    proofs:
+        Results of static and fatigue proof
+
+    load_collective: Dict of DataFrames
+        Contains k_c (pred and upper confidence) and f_sd_f
+
+    z:
+        Computed z
+
+    results: Dict
+        Results for output file
+    """    
+
+    def __init__(self, user_input, predicted_data, part_type, part):
+
+        # load materials and geometries 
         self.material = user_input.parameters.materials[part_type]
         self.geometry = user_input.parameters.geometries[part_type]
+
+        # factors for computing F_rd_f
         self.factors = {"f_f2": 1,
                         "f_f3": user_input.parameters.data["f_f3"].to_numpy(),
                         "f_f4": user_input.parameters.data["f_f4"].to_numpy(),
                         "f_ff": None}
+
+        # dictionary for F_rd_s and F_rd_f (pred and upper)
         self.F_rd = {"F_rd_s": None, "F_rd_f": pd.DataFrame(), "F_u": None}
-        self.F_sd = computed_data.load_collective[part]["f_sd_f"]
+
+        # parse F_sd for static and fatigue proof
+        self.F_sd = predicted_data.load_collective[part]["f_sd_f"]
+
+        # dictionary for proor results
         self.proofs = {"static": None, "fatigue": pd.DataFrame()}
-        self.load_collective = computed_data.load_collective[part]
+
+        # load collective data (k_c and v_c) for computing F_rd_f
+        self.load_collective = predicted_data.load_collective[part]
         self.z = None
         self.results = {}
 
     def compute_z(self, design_param, D_w):
+
+        # get configurations for point and line contact
         point = design_param["contact"] == "point"
         line = design_param["contact"] == "line"
         self.z = np.zeros(len(line))
+
+        # compute z
         self.z[np.where(line)[0]] = self.compute_z_ml(design_param, D_w, np.where(line)[0])
         self.z[np.where(point)[0]] = self.compute_z_mp(design_param, D_w, np.where(point)[0])
 
@@ -107,29 +186,41 @@ class Part():
     def compute_z_mp(self, design_param, D_w, idx):
         z_mp = (0.68 * (self.F_sd[idx] / design_param["E_m"][idx]
                         * ((1 - self.material["v"][idx] ** 2) 
-                           / (2 / D_w[idx] + 1 / self.geometry["r_k"][idx]))) 
+                           / (2 / D_w[idx] + 1 / design_param["r_k"][idx]))) 
                 ** (1/3))
         return z_mp
 
     def compute_f_ff(self, design_params):
         self.factors["f_f1"] = np.ones(len(design_params["b"]))
+
+        # set f_f1 to f_1 for each run where current part has b_min, otherwise 1
         idx = np.where(design_params["b"] == self.geometry["b"])[0]
         self.factors["f_f1"][idx] = design_params["f_1"][idx]
+
+        # compute f_ff
         self.factors["f_ff"] = self.factors["f_f1"] * self.factors["f_f2"] * self.factors["f_f3"] * self.factors["f_f4"]
 
     def compute_F_u(self, design_params, D_w):
+
+        # condition for when to use formula for hardned materials
         is_hardened = np.logical_and(self.material["hardened"] == 1, 
                                      np.logical_and((self.z < self.material["z"]), 
                                                     (self.material["HB"] >= 0.6 * self.material["f_y"])))
+        
+        # compute pre factor and F_u
         factor = np.ones(len(is_hardened)) * (3 * self.material["HB"]) ** 2
         factor[np.where(is_hardened)[0]] = (1.8 * self.material["f_y"][np.where(is_hardened)[0]]) ** 2
         self.F_rd["F_u"] = (factor * (math.pi * D_w * design_params["b"] * (1 - self.material["v"] ** 2)) 
                             / design_params["E_m"])
 
     def compute_F_rd_s(self, coefficients, design_params, D_w):
+
+        # condition for when to use formula for hardned materials
         is_hardened = np.logical_and(self.material["hardened"] == 1, 
                                      np.logical_and((self.z < self.material["z"]), 
                                                     (self.material["HB"] >= 0.6 * self.material["f_y"])))
+
+        # compute pre factor and F_u
         factor = np.ones(len(is_hardened)) * 7 * self.material["HB"]
         factor[np.where(is_hardened)[0]] = 4.2 * self.material["f_y"][np.where(is_hardened)[0]]
         self.F_rd["F_rd_s"] = (((factor ** 2) / coefficients.Y_m) 

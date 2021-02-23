@@ -7,15 +7,15 @@ import tkinter.font as tkFont
 from tkinter import filedialog
 
 # import tkinter as tk # alternative; im Code dann tk.Button etc.
-from designMethods.en_13001_3_3 import Computation, Computed_data, EN_input
-from output import create_output_file
+from ..designMethods.en_13001_3_3 import Computation, LoadCollectivePrediction, EN_input
+from .output import create_output_file
 
 
 def build_graphical_interface():
     direction = 1
     # init input object
     en_13001_input = EN_input()
-    en_13001_computed = Computed_data()
+    en_13001_predicted = LoadCollectivePrediction()
     gen_vars = {"num_run": 1}
 
     def read_input_file():
@@ -44,7 +44,7 @@ def build_graphical_interface():
         gp_configs = {"m1": {1: "m1l", -1: "m1r"}, "m2": {1: "m2"}}
         gp_config = gp_configs[en_13001_input.config][direction]
         parts = ["wf", "wr", "r"]
-        en_13001_computed.get_gps_kc(gp_config, parts)
+        en_13001_predicted.get_gps_kc(gp_config, parts)
         en_13001_input.config_loaded = True
 
     def start_computation():
@@ -57,12 +57,12 @@ def build_graphical_interface():
             init_gps()
 
         en_13001_input.recompute_gp_data(en_13001_input.config)
-        en_13001_computed.predict_kc(en_13001_input.gp_input.norm)
-        en_13001_computed.compute_F_sd_f_all(en_13001_input.gp_input.raw, en_13001_input.config, direction)
-        en_13001_computed.predict_travelled_dist(en_13001_input.parameters.data)
+        en_13001_predicted.predict_kc(en_13001_input.gp_input.norm)
+        en_13001_predicted.compute_F_sd_f_all(en_13001_input.gp_input.raw, en_13001_input.config, direction)
+        en_13001_predicted.predict_travelled_dist(en_13001_input.parameters.data)
 
         # create computation instance and compute configs
-        en_computation = Computation(en_13001_input, en_13001_computed)
+        en_computation = Computation(en_13001_input, en_13001_predicted)
         en_computation.compute_pre_F_rd_all()
         en_computation.compute_F_rd_all()
         en_computation.compute_proofs_all()

@@ -9,8 +9,8 @@ class En_test(unittest.TestCase):
     def setUp(self):
         self.config = "m1"
         self.direction = 1
-        parent_path = pathlib.Path(__file__).parent.absolute()
-        self.input_file = parent_path  / "test" / "testdata"  / "test_check_inputparameters.xlsx"
+        parent_path = pathlib.Path(__file__).parent.parent.absolute()
+        self.input_file = parent_path  / "testdata"  / "test_check_inputparameters.xlsx"
         self.my_input = EN_input()
         self.my_input.load_parameter_input(self.input_file, "Input_variables")
         self.my_input.load_gp_input(self.input_file, "configuration")
