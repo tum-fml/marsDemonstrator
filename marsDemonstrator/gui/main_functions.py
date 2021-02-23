@@ -41,7 +41,7 @@ class Main_application():
         self.prediction.clear_prediction_results()
         self.prediction.predict_kc(self.input.gp_input.norm)
         self.prediction.compute_F_sd_f_all(self.input.gp_input.raw, self.input.config, direction)
-        self.prediction.predict_travelled_dist(self.input.parameters.data, self.input.parameters.data["num_cycles_wheel"], self.input.gp_input.raw["r_l"])
+        self.prediction.predict_travelled_dist(self.input.parameters.gen_params, self.input.parameters.gen_params["num_cycles_wheel"], self.input.gp_input.raw["r_l"])
 
         # create computation instance and compute configs
         self.computation.load_data(self.input, self.prediction)
@@ -55,11 +55,12 @@ class Main_application():
         self.outname = self.input_file_path.parent.absolute() / f"output_no{self.num_run}.xlsx"
         create_output_file(self.computation, self.input, self.outname)
 
-    def init_gps(self, *args):
+    def init_gps(self):
         self.prediction = LoadCollectivePrediction()
         direction = 1
         gp_configs = {"m1": {1: "m1l", -1: "m1r"}, "m2": {1: "m2"}}
         gp_config = gp_configs[self.input.config][direction]
-        # parts = ["wf", "wr", "r"]
-        self.prediction.load_gps(gp_config)
-        # self.prediction.get_gps_kc(gp_config, parts)
+        parts = ["wf", "wr", "r"]
+        # self.prediction.load_gps(gp_config)
+        self.prediction.get_gps_kc(gp_config, parts)
+

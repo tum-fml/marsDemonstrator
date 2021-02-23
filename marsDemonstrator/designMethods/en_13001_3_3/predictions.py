@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 
 from .gpytorchModels import ExactGPModel
+from . import gpytorchModels as gpytorchModels
 
 mypath = pathlib.Path(__file__).parent.absolute()
 
@@ -155,8 +156,8 @@ class LoadCollectivePrediction():
             gp_cur.eval()
             gp_cur.load_cache(model_parameters_cur[part]["pred_dict"], data["X"].float())
             gp_cur.float()
-            model_parameters_cur[part]["pred_dict"]["mean_cache_data"] = gp_cur.prediction_strategy.mean_cache.data.float()
-            model_parameters_cur[part]["pred_dict"]["covar_cache_data"] = gp_cur.prediction_strategy.covar_cache.data.float()
+            gp_cur.prediction_strategy.mean_cache.data = gp_cur.prediction_strategy.mean_cache.data.float()
+            gp_cur.prediction_strategy.covar_cache.data = gp_cur.prediction_strategy.covar_cache.data.float()
             return gp_cur
 
         # init gps
@@ -166,10 +167,8 @@ class LoadCollectivePrediction():
         model_parameters_cur = model_parameters[config]
 
         self.gps = {part: init_gp(part) for part in parts}
-        joblib.dump(self.gps, mypath / f"gps_{config}.pkl")
-        model_parameters[config] = model_parameters_cur
-        joblib.dump(model_parameters, mypath / "model_parameters.pkl")
 
     def load_gps(self, config):
         # load gps directly from pkl
-        self.gps = joblib.load(mypath / f"gps_{config}.pkl")
+        gps = joblib.load(mypath / "gps.pkl")
+        self.gps = gps[config]

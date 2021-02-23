@@ -143,8 +143,8 @@ class EN_input():
     def set_materials_and_geometry(self):
 
         # get material and geometry parameters for each run
-        self.parameters.materials = self.materials.copy_parameters_to_gen_params(self.parameters.materials, self.parameters.data, ["material_wheel", "material_rail"])
-        self.parameters.geometries = self.geometries.copy_parameters_to_gen_params(self.parameters.geometries, self.parameters.data, ["wheel_geometry", "rail_geometry"])
+        self.parameters.materials = self.materials.copy_parameters_to_gen_params(self.parameters.materials, self.parameters.gen_params, ["material_wheel", "material_rail"])
+        self.parameters.geometries = self.geometries.copy_parameters_to_gen_params(self.parameters.geometries, self.parameters.gen_params, ["wheel_geometry", "rail_geometry"])
 
     def prepare_for_output(self):
 
