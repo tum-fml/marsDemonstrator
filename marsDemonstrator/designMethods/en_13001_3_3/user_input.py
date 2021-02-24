@@ -57,6 +57,20 @@ class EN_input():
     def read_input_df(self, filename):
         self.input_df = pd.read_excel(filename, sheet_name="Input_variables", index_col=[0, 1], header=None)
 
+        # define list of expected input vars
+        expected_vars = ["wheel_geometry", "rail_geometry", "alpha", "f_2", "f_f4", "material_wheel", "material_rail", "F_sd_f_w", "F_sd_f_r",
+                         "num_cycles_wheel", "num_cycles_rail", "cycle_mode", "c_h", "c_cg_z", "m_m_h", "m_cg_x", "m_m_a", "t_wd", "t_cg_x", "t_m_l", "t_m_a", "w_a",
+                         "w_s", "w_v", "l_cg_x", "l_m", "l_m_ld", "l_a", "r_l"]
+
+        self.input_df = self.input_df[~self.input_df.index.duplicated(keep='first')]
+        self.input_df = self.input_df[(self.input_df.iloc[:, 0].isin(expected_vars))]
+        if not pd.DataFrame(expected_vars).isin(list(self.input_df.iloc[:, 0])).all().loc[0]:
+            return True
+        self.input_df = self.input_df.loc[:, (self.input_df.isnull().sum(axis=0) <= 3)]
+
+        # check if there are all expected vars
+        return None
+
     def clear_inputs(self):
 
         # reset

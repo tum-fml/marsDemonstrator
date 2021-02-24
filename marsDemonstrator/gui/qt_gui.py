@@ -46,11 +46,12 @@ class MarsQTGui(QWidget):
     def create_config_box(self):
 
         def update_config():
+            # self.io_widgets.message_box.clear()
             self.io_widgets.message_box.clear()
+            self.io_widgets.message_box.setText("Updating configuration. This may take up to 30 seconds")
             self.main_application.input.config = str(self.io_widgets.dropdown_config.currentText())
             self.main_application.init_gps()
             # init_gps(self.main_application)
-            self.main_application.config_loaded = True
             self.io_widgets.message_box.setText("Configuration updated")
 
         self.config_box = QGroupBox()
@@ -74,12 +75,18 @@ class MarsQTGui(QWidget):
             self.main_application.input_file_path = pathlib.Path(self.main_application.input_file_path)
             try:
                 # read_input_file(self.main_application.input_file_path, self.main_application.input)
-                self.main_application.read_input_file(self.main_application.input_file_path,)
+                fatal_error = self.main_application.read_input_file(self.main_application.input_file_path)
+                if fatal_error:
+                    self.io_widgets.message_box.setText("Fatal error in input file")
+                    self.io_widgets.message_box.append(fatal_error)
+                    if self.main_application.input.error_report:
+                        self.write_error_reports()
+                    return
+
                 path_file_dialog_box.setText(str(self.main_application.input_file_path))
-                self.main_application.input_file_loaded = True
             except Exception as e:
-                self.io_widgets.message_box.setText("Invalid Input File")
-                self.io_widgets.message_box.append(e)
+                self.io_widgets.message_box.setText("Invalid Input File, unknown error")
+                self.io_widgets.message_box.append(e.__repr__())
 
         self.file_dialog_box = QGroupBox()
         layout_file_dialog_box = QHBoxLayout()
@@ -102,18 +109,19 @@ class MarsQTGui(QWidget):
                 self.main_application.input.config = str(self.io_widgets.dropdown_config.currentText())
                 # init_gps(self.main_application)
                 self.main_application.init_gps()
-                self.main_application.config_loaded = True
 
             # run_computation_and_create_output(self.main_application, 1, self.main_application)
             self.main_application.run_computation_and_create_output(1)
             self.io_widgets.message_box.setText(f"Generated output file: output_no{self.main_application.num_run}.xlsx")
-
-            error_reports = list(itertools.chain(*self.main_application.input.error_report))
-
-            if len(error_reports) > 0:
-                self.io_widgets.message_box.append("\nErrors found:")
-                for error in error_reports:
-                    self.io_widgets.message_box.append(error)
-
+            self.write_error_reports()
+        
         self.btn_start = QPushButton("Start computation")
         self.btn_start.clicked.connect(start)
+
+    def write_error_reports(self):
+        error_reports = list(itertools.chain(*self.main_application.input.error_report))
+
+        if len(error_reports) > 0:
+            self.io_widgets.message_box.append("\nErrors found:")
+            for error in error_reports:
+                self.io_widgets.message_box.append(error)
