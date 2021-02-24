@@ -50,7 +50,6 @@ class GPInput():
         self.raw = input_df.loc[index_name, :]
 
         # removes rows with duplicate indicies, in case sheet has errors
-        self.raw = self.raw[~self.raw.index.duplicated(keep='first')]
         self.var_names = list(self.raw.index)
 
         self.loaded = True

@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 
 class ErrorCheck():
@@ -8,6 +9,7 @@ class ErrorCheck():
         self.error_msg = error_msg
         self.value_data = None
         self.type_data = None
+        self.nan_data = None
         self.num_runs = None
 
     def load_type_data(self, data_runs):

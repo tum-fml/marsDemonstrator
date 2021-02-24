@@ -291,16 +291,25 @@ class RailWheelInput():
 class StandardMaterials(RailWheelInput):
 
     def read(self, filename, sheetname_rail, sheetname_wheel):
-        self.wheel = pd.read_excel(filename, sheet_name = sheetname_wheel, index_col = 0)
-        self.rail = pd.read_excel(filename, sheet_name = sheetname_rail, index_col = 0)
-        self.wheel.drop(columns = ["norm", "material_number"], inplace = True)
-        self.rail.drop(columns = ["norm", "material_number"], inplace = True)
+        self.wheel = pd.read_excel(filename, sheet_name=sheetname_wheel, index_col=0)
+        self.rail = pd.read_excel(filename, sheet_name=sheetname_rail, index_col=0)
+
+        # get rid on nan materials
+        self.wheel = self.wheel.loc[~self.wheel.index.isnull(), :]
+        self.rail = self.rail.loc[~self.rail.index.isnull(), :]
+
+        self.wheel.drop(columns = ["norm", "material_number"], inplace=True)
+        self.rail.drop(columns = ["norm", "material_number"], inplace=True)
         self.loaded = True
 
 
 class StandardGeometries(RailWheelInput):
 
     def read(self, filename, sheetname_rail, sheetname_wheel):
-        self.wheel = pd.read_excel(filename, sheet_name = sheetname_wheel, index_col = 0)
-        self.rail = pd.read_excel(filename, sheet_name = sheetname_rail, index_col = 0)
+        self.wheel = pd.read_excel(filename, sheet_name=sheetname_wheel, index_col=0)
+        self.rail = pd.read_excel(filename, sheet_name=sheetname_rail, index_col=0)
+
+        # get rid of nan geometries
+        self.wheel = self.wheel.loc[~self.wheel.index.isnull(), :]
+        self.rail = self.rail.loc[~self.rail.index.isnull(), :]
         self.loaded = True
