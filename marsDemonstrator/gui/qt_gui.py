@@ -36,6 +36,7 @@ class MarsQTGui(QWidget):
         main_layout.addWidget(self.btn_start)
         main_layout.addWidget(self.io_widgets.message_box)
         self.setLayout(main_layout)
+        self.fatal_error = None
         # self.app.font().setPointSize(18)
 
         # set general font size
@@ -73,12 +74,13 @@ class MarsQTGui(QWidget):
             self.main_application.input_file_path = None
             self.main_application.input_file_path, _ = QFileDialog.getOpenFileName(caption="Choose input file")
             self.main_application.input_file_path = pathlib.Path(self.main_application.input_file_path)
+            self.fatal_error = None
             try:
                 # read_input_file(self.main_application.input_file_path, self.main_application.input)
-                fatal_error = self.main_application.read_input_file(self.main_application.input_file_path)
-                if fatal_error:
+                self.fatal_error = self.main_application.read_input_file(self.main_application.input_file_path)
+                if self.fatal_error:
                     self.io_widgets.message_box.setText("Fatal error in input file")
-                    self.io_widgets.message_box.append(fatal_error)
+                    self.io_widgets.message_box.append(self.fatal_error)
                     if self.main_application.input.error_report:
                         self.write_error_reports()
                     return
@@ -87,6 +89,7 @@ class MarsQTGui(QWidget):
             except Exception as e:
                 self.io_widgets.message_box.setText("Invalid Input File, unknown error")
                 self.io_widgets.message_box.append(e.__repr__())
+                self.fatal_error = True
 
         self.file_dialog_box = QGroupBox()
         layout_file_dialog_box = QHBoxLayout()
@@ -101,14 +104,17 @@ class MarsQTGui(QWidget):
 
         def start():
             self.io_widgets.message_box.clear()
-            if self.main_application.input_file_loaded is None:
+            if self.main_application.input_file_loaded is None or self.fatal_error is not None:
                 self.io_widgets.message_box.setText("Please upload an input file!")
+                self.main_application.input_file_loaded = None
                 return
             self.io_widgets.message_box.setText("Computation started, please wait")
             if self.main_application.config_loaded is None:
                 self.main_application.input.config = str(self.io_widgets.dropdown_config.currentText())
                 # init_gps(self.main_application)
+                self.io_widgets.message_box.setText("Updating configuration. This may take up to 30 seconds")
                 self.main_application.init_gps()
+                self.io_widgets.message_box.setText("Configuration updated")
 
             # run_computation_and_create_output(self.main_application, 1, self.main_application)
             self.main_application.run_computation_and_create_output(1)

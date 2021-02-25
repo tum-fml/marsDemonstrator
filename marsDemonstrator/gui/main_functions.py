@@ -13,7 +13,7 @@ class Main_application():
         self.config_loaded = None
         self.num_run = 0
         self.outname = None
-        self.new_input_file_loaded = None
+        self.file_or_config_reloaded = None
 
     def read_input_file(self, filename):
         # load data for load collective prediction
@@ -46,11 +46,11 @@ class Main_application():
         self.input.parameters.compute_f_f3()
         self.input.parameters.compute_contact_and_f_1()
         self.input_file_loaded = True
-        self.new_input_file_loaded = True
+        self.file_or_config_reloaded = True
         return None
 
     def run_computation_and_create_output(self, direction):
-        if self.new_input_file_loaded:
+        if self.file_or_config_reloaded:
             self.num_run += 1
             self.input.recompute_gp_data(self.input.config)
             self.prediction.clear_prediction_results()
@@ -69,7 +69,7 @@ class Main_application():
             self.computation.load_results_all()
             self.outname = self.input_file_path.parent.absolute() / f"output_no{self.num_run}.xlsx"
             create_output_file(self.computation, self.input, self.outname)
-            self.new_input_file_loaded = None
+            self.file_or_config_reloaded = None
 
     def init_gps(self):
         self.prediction = LoadCollectivePrediction()
@@ -80,4 +80,5 @@ class Main_application():
         # self.prediction.load_gps(gp_config)
         self.prediction.get_gps_kc(gp_config, parts)
         self.config_loaded = True
+        self.file_or_config_reloaded = True
 
