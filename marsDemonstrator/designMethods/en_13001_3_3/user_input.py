@@ -57,8 +57,9 @@ class EN_input():
     def read_input_df(self, filename):
         self.input_df = pd.read_excel(filename, sheet_name="Input_variables", index_col=[0, 1], header=None)
 
+    def check_input_df(self):
         # define list of expected input vars
-        expected_vars = ["wheel_geometry", "rail_geometry", "alpha", "f_2", "f_f4", "material_wheel", "material_rail", "F_sd_f_w", "F_sd_f_r",
+        expected_vars = ["wheel_geometry", "rail_geometry", "alpha", "f_2", "w", "f_f4", "material_wheel", "material_rail", "F_sd_f_w", "F_sd_f_r",
                          "num_cycles_wheel", "num_cycles_rail", "cycle_mode", "c_h", "c_cg_z", "m_m_h", "m_cg_x", "m_m_a", "t_wd", "t_cg_x", "t_m_l", "t_m_a", "w_a",
                          "w_s", "w_v", "l_cg_x", "l_m", "l_m_ld", "l_a", "r_l"]
 
@@ -114,6 +115,19 @@ class EN_input():
         # get configuration numbers that contain faulty geometries
         self.error_configs.append(list(self.parameters.get_material_geometry_error_runs(error_geoms, "wheel_geometry", "rail_geometry")))
 
+    def geometry_and_material_error_check(self):
+        error_report, error_mats = self.materials.get_errors("material")
+        self.error_report.append(error_report)
+
+        # get configuration numbers that contain faulty materials
+        self.error_configs.append(list(self.parameters.get_material_geometry_error_runs(error_mats, "material_wheel", "material_rail")))
+
+        error_report, error_geoms = self.geometries.get_errors("geometry")
+        self.error_report.append(error_report)
+
+        # get configuration numbers that contain faulty geometries
+        self.error_configs.append(list(self.parameters.get_material_geometry_error_runs(error_geoms, "wheel_geometry", "rail_geometry")))
+
     def perform_error_checks(self):
 
         # run type check on gp input and get error reports and config numbers
@@ -130,6 +144,14 @@ class EN_input():
         error_report, error_config = self.parameters.error_check.get_error_reports()
         self.error_report.append(error_report)
         self.error_configs.append(list(chain(*error_config)))
+
+    def perform_gp_input_warning_check(self):
+        # clear results of type check
+        self.gp_input.error_check.check_results = {}
+        self.gp_input.parse_value_check_data()
+        self.gp_input.error_check.check_values()
+        error_report, _ = self.gp_input.error_check.get_error_reports()
+        self.error_report.append(error_report)
 
     def drop_error_configs(self):
 

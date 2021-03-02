@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from .gpytorchModels import ExactGPModel
-from . import gpytorchModels as gpytorchModels
+# from . import gpytorchModels as gpytorchModels
 
 mypath = pathlib.Path(__file__).parent.absolute()
 
@@ -56,6 +56,8 @@ class LoadCollectivePrediction():
             [wf, wr, r]
         """    
 
+        # f_sd_f is parsed in kN --> convert to N
+        f_sd_f_new *= 1000
         # get idx of computation runs where user gave f_sd_f and get their f_sd_f   
         idx = idx = np.where(f_sd_f_new != 0)[0]
         f_sd_compute = self.load_collective[part]["f_sd_f"].copy()
@@ -70,6 +72,14 @@ class LoadCollectivePrediction():
         self.load_collective[part]["f_sd_f"] = f_sd_compute
 
     def predict_travelled_dist(self, cycle_mode, num_cycles, rack_length):
+ 
+        # set cycle mode to 1, 2, or 4 in case of bad input
+        num_cycles = num_cycles.to_numpy().astype(int)
+        cycle_mode = cycle_mode.to_numpy().astype(int)
+        rack_length = rack_length.to_numpy().astype(int)
+        cycle_mode[cycle_mode <= 1] = 1
+        cycle_mode[np.logical_and(cycle_mode > 1, cycle_mode <= 2)] = 2
+        cycle_mode[cycle_mode > 2] = 4
 
         # compute travelled dist based on cycle mode number of cylces for wheels and rack length
         mean_travelled_dist = np.ones(len(cycle_mode)) * 0.3

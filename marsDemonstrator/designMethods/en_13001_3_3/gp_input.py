@@ -33,8 +33,9 @@ class GPInput():
 
     error_check: ErrorCheck
         Error check object for performing type and value checks on raw/norm.
-    
+
     """
+
     def __init__(self):
         self.raw = None
         self.norm = None
@@ -42,7 +43,7 @@ class GPInput():
         self.var_names = None
         self.raw_out = None
         self.input_scale = None
-        self.error_check = ErrorCheck(self.value_check_fn, {"value": "expected value in interval: ", "type": "expected type: "})
+        self.error_check = ErrorCheck(self.value_check_fn, {"value": "expected value in interval: ", "type": "expected type: "}, gp_input=True)
 
     def read(self, input_df, index_name):
 
@@ -88,7 +89,7 @@ class GPInput():
 
         # get input scale for given configuration
         self.input_scale = input_scales[config]
-        
+
         # recompute variabels "mast addition masses" and "traverse additional masses"
         # user gives total mass of traverse and mass and mass per height / length
         self.raw["m_m_a"] = self.raw["m_m_a"] - self.raw["m_m_h"] * (self.raw["c_h"] - 0.8)
@@ -96,18 +97,21 @@ class GPInput():
 
         # currently only crane direction 1 i considered
         crane_direction = 1
-        if config == "m1":
-            # if gp_input["m_cg_x"] > 0.5:
-            #     gp_input["l_cg_x"] = 1 - gp_input["l_cg_x"]
-            #     crane_direction = -1
+        # if config == "m1":
+        #     # if gp_input["m_cg_x"] > 0.5:
+        #     #     gp_input["l_cg_x"] = 1 - gp_input["l_cg_x"]
+        #     #     crane_direction = -1
 
-            # if configuration is 1 Mast recompute center of gravity x for lift so that it is
-            # represented as distance from cg x of mast
-            self.raw["l_cg_x"] = (self.raw["l_cg_x"] - self.raw["m_cg_x"]) * self.raw["t_wd"]
+        #     # if configuration is 1 Mast recompute center of gravity x for lift so that it is
+        #     # represented as distance from cg x of mast
+        #     self.raw["l_cg_x"] = (self.raw["l_cg_x"] - self.raw["m_cg_x"]) * self.raw["t_wd"]
 
         # initialize normalized gp input
         self.norm = self.raw.loc[:, ["c_h", "c_cg_z", "m_m_h", "m_cg_x", "m_m_a", "t_wd", "t_cg_x", "t_m_l",
                                      "t_m_a", "w_a", "w_s", "w_v", "l_cg_x", "l_m", "l_m_ld", "l_a", "r_l"]].copy()
+
+        # self.raw = self.raw.loc[:, ["c_h", "c_cg_z", "m_m_h", "m_cg_x", "m_m_a", "t_wd", "t_cg_x", "t_m_l",
+        #                             "t_m_a", "w_a", "w_s", "w_v", "l_cg_x", "l_m", "l_m_ld", "l_a", "r_l"]].copy()
 
         self.norm = self.norm.to_numpy()
 
@@ -127,7 +131,9 @@ class GPInput():
 
         # init scale data frame
         scale = pd.DataFrame()
-        for idx, var_name in enumerate(self.raw.columns):
+
+        # last three entries are num cycles rail and wheel and cycle mode --> not in input scale 
+        for idx, var_name in enumerate(self.raw.columns[:-3]):
             scale.loc[var_name, "min"] = self.input_scale["min"][idx]
             scale.loc[var_name, "diff"] = self.input_scale["diff"][idx]
 
@@ -136,8 +142,23 @@ class GPInput():
         self.input_scale = scale
 
         # set interval for l_cg_x manually --> needs rework
-        self.input_scale.loc["l_cg_x", "min"] = 0.2
-        self.input_scale.loc["l_cg_x", "max"] = 0.6
+        # l_cg_x_min = self.input_scale.loc["l_cg_x", "min"].copy()
+        # l_cg_x_max = self.input_scale.loc["l_cg_x", "max"].copy()
+
+        # self.input_scale.loc["l_cg_x", "min"] = 0.2
+        # self.input_scale.loc["l_cg_x", "max"] = 0.6
+
+        # max for rack length and empty lift mass needs to be set manually
+        self.input_scale.loc["l_m", "max"] = 3000
+        self.input_scale.loc["r_l", "max"] = 150
+
+        # create max, min, and diff for num cycles and cycle mode
+        self.input_scale.loc["num_cycles_wheel", "min"] = 0
+        self.input_scale.loc["num_cycles_wheel", "max"] = 100000000
+        self.input_scale.loc["num_cycles_rail", "min"] = 0
+        self.input_scale.loc["num_cycles_rail", "max"] = 100000000
+        self.input_scale.loc["cycle_mode", "min"] = 1
+        self.input_scale.loc["cycle_mode", "max"] = 4
 
         # recompute min and max for mast and traverse additional masses --> needs to be total masses instead
         for field in ["min", "max"]:
@@ -174,7 +195,7 @@ class GPInput():
         return value_data.transpose()
 
     def parse_type_check_data(self):
-        
+
         # parse type check data to error check object
         self.error_check.load_type_data(self.create_type_check_data())
 
@@ -199,7 +220,7 @@ class GPInput():
         value_data: DataFrame
             True for conig/param configuration where exp. values are met, False else.
         """        
-        
+
         # separate gp input data from expected intervals
         value_check_data = value_check.iloc[:num_run, :].copy()
         value_check_compare = value_check.iloc[num_run:, :].copy()

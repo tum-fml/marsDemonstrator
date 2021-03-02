@@ -14,6 +14,7 @@ class Computation():
     """Class for doing all computations
     """
     # functions
+
     def __init__(self):
         self.des_params = None
         self.coefficients = self.coefficients = Coefficients(1.1, 1.1, 10/3, 1)
@@ -26,22 +27,25 @@ class Computation():
     def load_data(self, user_input: EN_input, predicted_data: LoadCollectivePrediction):
         # data frame with data for en computation
         input_df = user_input.parameters.gen_params
+        gp_input = user_input.gp_input.raw
 
         # design parameters for en computation
-        self.des_params = pd.DataFrame({"b": input_df["b_min"],
-                                        "f_1": input_df["f_1"],
-                                        "f_2": input_df["f_2"],
-                                        "w": input_df["w"],
-                                        "r_k": input_df["r_k"],
+        self.des_params = pd.DataFrame({"b": pd.to_numeric(input_df["b_min"]),
+                                        "f_1": pd.to_numeric(input_df["f_1"]),
+                                        "f_2": pd.to_numeric(input_df["f_2"]),
+                                        "w": pd.to_numeric(input_df["w"]),
+                                        "r_k": pd.to_numeric(input_df["r_k"]),
                                         "contact": input_df["contact"]})
-        
+
         # wheels and rail as attributes
         self.wheel_f = Wheel(user_input, predicted_data, "wheel", "wf")
         self.wheel_r = Wheel(user_input, predicted_data, "wheel", "wr")
         self.rail = Rail(user_input, predicted_data, "rail", "r")
 
         # data for computing v_c
-        self.v_c_data = {"travelled_dist": predicted_data.travelled_dist, "num_cycles_wheel": input_df["num_cycles_wheel"], "num_cycles_rail": input_df["num_cycles_rail"]}
+        self.v_c_data = {"travelled_dist": pd.to_numeric(predicted_data.travelled_dist), 
+                         "num_cycles_wheel": pd.to_numeric(gp_input["num_cycles_wheel"]), 
+                         "num_cycles_rail": pd.to_numeric(gp_input["num_cycles_rail"])}
 
         # wheel diameter as extra attribute because of its importance
         self.D_w = user_input.parameters.geometries["wheel"]["D"]
@@ -110,7 +114,7 @@ class Part():
 
     Attributes:
     -----------
-    
+
     material: DataFrame
         material parameters of rail / wheel
 
@@ -147,15 +151,15 @@ class Part():
 
         # factors for computing F_rd_f
         self.factors = {"f_f2": 1,
-                        "f_f3": user_input.parameters.gen_params["f_f3"].to_numpy(),
-                        "f_f4": user_input.parameters.gen_params["f_f4"].to_numpy(),
+                        "f_f3": pd.to_numeric(user_input.parameters.gen_params["f_f3"]).to_numpy(),
+                        "f_f4": pd.to_numeric(user_input.parameters.gen_params["f_f4"]).to_numpy(),
                         "f_ff": None}
 
         # dictionary for F_rd_s and F_rd_f (pred and upper)
         self.F_rd = {"F_rd_s": None, "F_rd_f": pd.DataFrame(), "F_u": None}
 
         # parse F_sd for static and fatigue proof
-        self.F_sd = predicted_data.load_collective[part]["f_sd_f"]
+        self.F_sd = pd.to_numeric(predicted_data.load_collective[part]["f_sd_f"])
 
         # dictionary for proor results
         self.proofs = {"static": None, "fatigue": pd.DataFrame()}
@@ -206,7 +210,7 @@ class Part():
         is_hardened = np.logical_and(self.material["hardened"] == 1, 
                                      np.logical_and((self.z < self.material["z"]), 
                                                     (self.material["HB"] >= 0.6 * self.material["f_y"])))
-        
+
         # compute pre factor and F_u
         factor = np.ones(len(is_hardened)) * (3 * self.material["HB"]) ** 2
         factor[np.where(is_hardened)[0]] = (1.8 * self.material["f_y"][np.where(is_hardened)[0]]) ** 2
@@ -244,24 +248,24 @@ class Part():
 
     def load_results(self):
         self.results["static"] = pd.DataFrame({
-            "F_sd_s": self.F_sd,
-            "F_rd_s": self.F_rd["F_rd_s"],
-            "Fulfilled": self.proofs["static"]
+            "Deisgn-Contact-Force-F_sd_s [kN]": self.F_sd / 1000,
+            "Limit-Design-Contact-Force-Static-F_rd_s [kN]": self.F_rd["F_rd_s"] / 1000,
+            "Condition-Fullfilled": self.proofs["static"]
         })
 
         self.results["fatigue"] = {"prediction": {}, "upper_confidence": {}}
         self.results["fatigue"] = pd.DataFrame({
-            "Bemessungskontaktkraft-F_sd_f[kN]": self.F_sd / 1000,
-            "Bezugskontaktkraft-F_u": self.F_rd["F_u"] / 1000,
-            "Rollkontakte-v_c": self.load_collective["v_c"],
-            "Kontaktkraftkollektivbeiwert-k_c_pred": self.load_collective["k_c"]["preds"],
-            "Kontaktverlaufsparameter-s_c_pred": self.load_collective["s_c"]["preds"],
-            "F_rd_f_pred": self.F_rd["F_rd_f"]["preds"],
-            "Fulfilled_pred": self.proofs["fatigue"]["preds"],
-            "k_c_upper": self.load_collective["k_c"]["upper"],
-            "s_c_upper": self.load_collective["s_c"]["upper"],
-            "F_rd_f_upper": self.F_rd["F_rd_f"]["upper"],
-            "Fulfilled_upper": self.proofs["fatigue"]["preds"]
+            "Deisgn-Contact-Force-F_sd_f [kN]": self.F_sd / 1000,
+            "Reference-Contact-Force-F_u [kN]": self.F_rd["F_u"] / 1000,
+            "Relative-Total-Number-of-Rolling-Contacts-v_c": self.load_collective["v_c"],
+            "Contact-Force-Spectrum-Factor-k_c-Prediction": self.load_collective["k_c"]["preds"],
+            "Contact-Force-History-Parameter-s_c_Prediction": self.load_collective["s_c"]["preds"],
+            "Limit-Design-Contact-Force-Fatigue-F_rd_f-Prediction [kN]": self.F_rd["F_rd_f"]["preds"] / 1000,
+            "Condition-Fullfilled-Prediction": self.proofs["fatigue"]["preds"],
+            "Contact-Force-Spectrum-Parameter-k_c-Upper-Confidence-Interval": self.load_collective["k_c"]["upper"],
+            "Contact-Force-History-Parameter-s_c_Upper-Confidence-Interval": self.load_collective["s_c"]["upper"],
+            "Limit-Force-F_rd_f-Prediction-Upper-Confidence-Interval [kN]": self.F_rd["F_rd_f"]["upper"] / 1000,
+            "Condition-Fullfilled-Upper-Confidence_Interval": self.proofs["fatigue"]["preds"]
         })
 
     # @abc.abstractmethod
