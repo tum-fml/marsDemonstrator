@@ -18,6 +18,11 @@ class I_O_Widgets():
         self.message_box = None
         self.dropdown_config = None
 
+    def get_current_config(self):
+        configs = {"1 Mast": "m1", "2 Masts": "m2"}
+        configuration = configs[str(self.dropdown_config.currentText())]
+        return configuration
+
 
 class MarsQTGui(QWidget):
 
@@ -50,7 +55,8 @@ class MarsQTGui(QWidget):
             # self.io_widgets.message_box.clear()
             self.io_widgets.message_box.clear()
             self.io_widgets.message_box.setText("Updating configuration. This may take up to 30 seconds")
-            self.main_application.input.config = str(self.io_widgets.dropdown_config.currentText())
+            self.io_widgets.message_box.repaint()
+            self.main_application.input.config = self.io_widgets.get_current_config()
             self.main_application.init_gps()
             # init_gps(self.main_application)
             self.io_widgets.message_box.setText("Configuration updated")
@@ -58,7 +64,7 @@ class MarsQTGui(QWidget):
         self.config_box = QGroupBox()
         layout_config_box = QHBoxLayout() 
         self.io_widgets.dropdown_config = QComboBox()
-        self.io_widgets.dropdown_config.addItems(["m1", "m2"])
+        self.io_widgets.dropdown_config.addItems(["1 Mast", "2 Masts"])
         btn_config = QPushButton("Update Configuration")
         btn_config.clicked.connect(update_config)
         layout_config_box.addWidget(QLabel("Choose configuration"))
@@ -109,18 +115,21 @@ class MarsQTGui(QWidget):
                 self.main_application.input_file_loaded = None
                 return
             self.io_widgets.message_box.setText("Computation started, please wait")
+            self.io_widgets.message_box.repaint()
             if self.main_application.config_loaded is None:
-                self.main_application.input.config = str(self.io_widgets.dropdown_config.currentText())
+                self.main_application.input.config = self.io_widgets.get_current_config()
                 # init_gps(self.main_application)
                 self.io_widgets.message_box.setText("Updating configuration. This may take up to 30 seconds")
+                self.io_widgets.message_box.repaint()
                 self.main_application.init_gps()
                 self.io_widgets.message_box.setText("Configuration updated")
+                self.io_widgets.message_box.repaint()
 
             # run_computation_and_create_output(self.main_application, 1, self.main_application)
             self.main_application.run_computation_and_create_output(1)
             self.io_widgets.message_box.setText(f"Generated output file: output_no{self.main_application.num_run}.xlsx")
             self.write_error_reports()
-        
+
         self.btn_start = QPushButton("Start computation")
         self.btn_start.clicked.connect(start)
 

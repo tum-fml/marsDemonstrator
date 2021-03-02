@@ -18,8 +18,8 @@ class En_test(unittest.TestCase):
         self.my_input.load_material_input_check(input_file, "rail_materials", "wheel_materials")
         self.my_input.load_geometry_input_check(input_file, "rail_geometries", "wheel_geometries")
         self.my_input.read_input_df(input_file)
-        self.my_input.load_parameter_input("General Input")
-        self.my_input.load_gp_input("RBG-Konfiguration")
+        self.my_input.load_parameter_input("EN-13001-3-3")
+        self.my_input.load_gp_input("Stacker Crane (SC) Configuration")
         self.my_input.set_materials_and_geometry()
         self.my_input.parameters.compute_contact_and_f_1()
         self.my_input.parameters.compute_f_f3()
@@ -65,12 +65,12 @@ class En_test(unittest.TestCase):
         np.testing.assert_almost_equal(list(self.expected_results["F_sd_f_wr"]), list(self.predicted_data.load_collective["wr"]["f_sd_f"]))
 
         self.load_k_c()
-        if any(self.my_input.parameters.data["F_sd_f_w"] > 0):
-            self.predicted_data.recompute_kc(self.my_input.parameters.data["F_sd_f_w"], "wf")
-            self.predicted_data.recompute_kc(self.my_input.parameters.data["F_sd_f_w"], "wr")
+        if any(self.my_input.parameters.gen_params["F_sd_f_w"] > 0):
+            self.predicted_data.recompute_kc(self.my_input.parameters.gen_params["F_sd_f_w"], "wf")
+            self.predicted_data.recompute_kc(self.my_input.parameters.gen_params["F_sd_f_w"], "wr")
 
-        if any(self.my_input.parameters.data["F_sd_f_r"] > 0):
-            self.predicted_data.recompute_kc(self.my_input.parameters.data["F_sd_f_r"], "r")
+        if any(self.my_input.parameters.gen_params["F_sd_f_r"] > 0):
+            self.predicted_data.recompute_kc(self.my_input.parameters.gen_params["F_sd_f_r"], "r")
 
         np.testing.assert_almost_equal(list(self.expected_results["k_c_rail_preds_new"]), list(self.predicted_data.load_collective["r"]["k_c"]["preds"]))
         np.testing.assert_almost_equal(list(self.expected_results["k_c_rail_upper_new"]), list(self.predicted_data.load_collective["r"]["k_c"]["upper"]))
@@ -80,7 +80,7 @@ class En_test(unittest.TestCase):
         np.testing.assert_almost_equal(list(self.expected_results["k_c_wr_upper_new"]), list(self.predicted_data.load_collective["wr"]["k_c"]["upper"]))
 
     def test_computed_proofs(self):
-        self.predicted_data.predict_travelled_dist(self.my_input.parameters.data["cycle_mode"], self.my_input.parameters.data["num_cycles_wheel"], self.my_input.gp_input.raw["r_l"])
+        self.predicted_data.predict_travelled_dist(self.my_input.parameters.gen_params["cycle_mode"], self.my_input.parameters.gen_params["num_cycles_wheel"], self.my_input.gp_input.raw["r_l"])
         self.load_load_collective()
 
         self.en_computation = Computation()
