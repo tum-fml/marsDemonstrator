@@ -1,6 +1,8 @@
 import pathlib
+from typing import Dict, Tuple, List
 
 import gpytorch as gp
+import torch
 import joblib
 import numpy as np
 import pandas as pd
@@ -27,17 +29,17 @@ class LoadCollectivePrediction():
 
     """    
 
-    def __init__(self):
-        self.travelled_dist = None
+    def __init__(self) -> None:
+        self.travelled_dist: np.array
         self.load_collective = {part: {"k_c": pd.DataFrame(), "f_sd_f": None} 
                                 for part in ["wf", "wr", "r"]}
-        self.gps = None
+        self.gps: Dict[str, ExactGPModel]
 
-    def clear_prediction_results(self):
+    def clear_prediction_results(self) -> None:
         self.load_collective = {part: {"k_c": pd.DataFrame(), "f_sd_f": None} 
                                 for part in ["wf", "wr", "r"]}
 
-    def predict_kc(self, input_data):
+    def predict_kc(self, input_data: torch.Tensor) -> None:
 
         # make predictions for k_c for wheels and rail
         parts = ["wf", "wr", "r"]
@@ -45,7 +47,7 @@ class LoadCollectivePrediction():
             self.gps[part].float()
             self.load_collective[part]["k_c"]["preds"], self.load_collective[part]["k_c"]["lower"], self.load_collective[part]["k_c"]["upper"] = self.gps[part].predict(input_data)
 
-    def recompute_kc(self, f_sd_f_new, part):
+    def recompute_kc(self, f_sd_f_new: pd.Series, part: str):
         """Recompute k_c with user given f_sd
 
         Parameters
@@ -71,8 +73,8 @@ class LoadCollectivePrediction():
         # copy user given f_sd_f into load_collective's f_sd_f
         self.load_collective[part]["f_sd_f"] = f_sd_compute
 
-    def predict_travelled_dist(self, cycle_mode, num_cycles, rack_length):
- 
+    def predict_travelled_dist(self, cycle_mode: pd.Series, num_cycles: pd.Series, rack_length: pd.Series) -> None:
+
         # set cycle mode to 1, 2, or 4 in case of bad input
         num_cycles = num_cycles.to_numpy().astype(int)
         cycle_mode = cycle_mode.to_numpy().astype(int)
@@ -87,7 +89,7 @@ class LoadCollectivePrediction():
         mean_travelled_dist[np.where(cycle_mode == 2)[0]] = 0.5
         self.travelled_dist = num_cycles * rack_length * mean_travelled_dist
 
-    def compute_F_sd_f_all(self, input_data, config, crane_direction):
+    def compute_F_sd_f_all(self, input_data: pd.DataFrame, config: str, crane_direction: int) -> None:
 
         f_wf = np.zeros((4, len(input_data)))
         f_wr = f_wf.copy()
@@ -103,7 +105,7 @@ class LoadCollectivePrediction():
         self.load_collective["r"]["f_sd_f"] = np.max(np.vstack((f_wf, f_wr)), axis=0)
 
     @staticmethod
-    def get_crane_configuration(input_data, config):
+    def get_crane_configuration(input_data: pd.DataFrame, config: str) -> pd.DataFrame:
         crane_configuration = input_data.copy()
         crane_configuration["l_m_t"] = crane_configuration["l_m"] + crane_configuration["l_m_ld"]
         crane_configuration["l_lv_x"] = crane_configuration["t_wd"] * crane_configuration["l_cg_x"]
@@ -122,7 +124,7 @@ class LoadCollectivePrediction():
         return crane_configuration
 
     @staticmethod
-    def compute_F_sd_f(crane_configuration, a_x, a_z, crane_direction):
+    def compute_F_sd_f(crane_configuration: pd.DataFrame, a_x: pd.Series, a_z: pd.Series, crane_direction: int) -> Tuple[np.array, np.array]:
         g_force = 9.81
         a_x = -a_x
         a_z = -a_z
@@ -152,9 +154,9 @@ class LoadCollectivePrediction():
 
         return np.array(f_wf), np.array(f_wr)
 
-    def get_gps_kc(self, config, parts):
+    def get_gps_kc(self, config: str, parts: List[str]) -> None:
 
-        def init_gp(part):
+        def init_gp(part: str) -> ExactGPModel:
             gp_cur = ExactGPModel(data["X"].float(), data[part].float(), gp.likelihoods.GaussianLikelihood().float(), 
                                   gp.kernels.MaternKernel(ard_num_dims=17).float(), gp.means.ZeroMean().float())
             gp_cur.float()
@@ -178,7 +180,7 @@ class LoadCollectivePrediction():
 
         self.gps = {part: init_gp(part) for part in parts}
 
-    def load_gps(self, config):
+    def load_gps(self, config: str) -> None:
         # load gps directly from pkl
         gps = joblib.load(mypath / "gps.pkl")
         self.gps = gps[config]

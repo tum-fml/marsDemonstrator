@@ -1,10 +1,10 @@
 import itertools
 import pathlib
 
-from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import (QComboBox, QFileDialog, QGridLayout,
-                             QGroupBox, QHBoxLayout, QLabel, QLineEdit,
-                             QPushButton, QTextEdit, QWidget)
+from PyQt5.QtGui import QFont # pylint: disable=no-name-in-module
+from PyQt5.QtWidgets import (QComboBox, QFileDialog, QGridLayout, # pylint: disable=no-name-in-module
+                             QGroupBox, QHBoxLayout, QLabel, QLineEdit, # pylint: disable=no-name-in-module
+                             QPushButton, QTextEdit, QWidget) # pylint: disable=no-name-in-module
 
 # from .main_functions import (init_gps, read_input_file,
 #                              run_computation_and_create_output, Main_application)
@@ -14,11 +14,11 @@ from .main_functions import Main_application
 
 class I_O_Widgets():
 
-    def __init__(self):
-        self.message_box = None
-        self.dropdown_config = None
+    def __init__(self) -> None:
+        self.message_box = QTextEdit()
+        self.dropdown_config = QComboBox()
 
-    def get_current_config(self):
+    def get_current_config(self) -> str:
         configs = {"1 Mast": "m1", "2 Masts": "m2"}
         configuration = configs[str(self.dropdown_config.currentText())]
         return configuration
@@ -26,12 +26,11 @@ class I_O_Widgets():
 
 class MarsQTGui(QWidget):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         # self.main_application = Run_vars()
         self.main_application = Main_application()
         self.io_widgets = I_O_Widgets()
-        self.io_widgets.message_box = QTextEdit()
         self.create_config_box()
         self.create_file_dialog_box()
         self.create_start_button()
@@ -49,7 +48,7 @@ class MarsQTGui(QWidget):
         self.setFont(QFont("Arial", 9))
         self.show()
 
-    def create_config_box(self):
+    def create_config_box(self) -> None:
 
         def update_config():
             # self.io_widgets.message_box.clear()
@@ -63,7 +62,6 @@ class MarsQTGui(QWidget):
 
         self.config_box = QGroupBox()
         layout_config_box = QHBoxLayout() 
-        self.io_widgets.dropdown_config = QComboBox()
         self.io_widgets.dropdown_config.addItems(["1 Mast", "2 Masts"])
         btn_config = QPushButton("Update Configuration")
         btn_config.clicked.connect(update_config)
@@ -73,7 +71,7 @@ class MarsQTGui(QWidget):
         # layout_config_box.addStretch(3)
         self.config_box.setLayout(layout_config_box)
 
-    def create_file_dialog_box(self):
+    def create_file_dialog_box(self) -> None:
         def open_file_dialog():
             self.io_widgets.message_box.clear()
             path_file_dialog_box.clear()
@@ -106,7 +104,7 @@ class MarsQTGui(QWidget):
         layout_file_dialog_box.addWidget(path_file_dialog_box)
         self.file_dialog_box.setLayout(layout_file_dialog_box)
 
-    def create_start_button(self):
+    def create_start_button(self) -> None:
 
         def start():
             self.io_widgets.message_box.clear()
@@ -133,7 +131,7 @@ class MarsQTGui(QWidget):
         self.btn_start = QPushButton("Start computation")
         self.btn_start.clicked.connect(start)
 
-    def write_error_reports(self):
+    def write_error_reports(self) -> None:
         error_reports = list(itertools.chain(*self.main_application.input.error_report))
 
         if len(error_reports) > 0:

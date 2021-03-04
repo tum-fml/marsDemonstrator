@@ -1,5 +1,6 @@
 import numbers
 import pathlib
+from typing import List, Tuple
 
 import joblib
 import numpy as np
@@ -36,13 +37,13 @@ class GPInput():
 
     """
 
-    def __init__(self):
-        self.raw = None
-        self.norm = None
-        self.loaded = None
-        self.var_names = None
-        self.raw_out = None
-        self.input_scale = None
+    def __init__(self) -> None:
+        self.raw: pd.DataFrame
+        self.norm: pd.DataFrame
+        # self.loaded
+        self.var_names: List[str]
+        self.raw_out: pd.DataFrame
+        self.input_scale: pd.DataFrame
         self.error_check = ErrorCheck(self.value_check_fn, {"value": "expected value in interval: ", "type": "expected type: "}, gp_input=True)
 
     def read(self, input_df, index_name):
@@ -53,9 +54,9 @@ class GPInput():
         # removes rows with duplicate indicies, in case sheet has errors
         self.var_names = list(self.raw.index)
 
-        self.loaded = True
+        # self.loaded = True
 
-    def rearrange(self):
+    def rearrange(self) -> None:
 
         # set first column to index and drop column with output var names
         self.raw.index = self.raw.iloc[:, 0]
@@ -69,7 +70,7 @@ class GPInput():
         self.raw_out = self.raw.copy()
         self.raw_out.columns = self.var_names
 
-    def recompute(self, config):
+    def recompute(self, config: str) -> int:
         """Recompute gp input. This function computes some variables for load collective prediction based on variables given by user.
         Also normalizes gp data,
 
@@ -127,7 +128,7 @@ class GPInput():
 
         return crane_direction
 
-    def modify_input_scales(self):
+    def modify_input_scales(self) -> None:
 
         # init scale data frame
         scale = pd.DataFrame()
@@ -173,7 +174,7 @@ class GPInput():
         self.input_scale = self.input_scale.join(intervals.copy())
         self.input_scale.index = self.var_names
 
-    def create_type_check_data(self):
+    def create_type_check_data(self) -> Tuple[pd.DataFrame, int]:
 
         # all variables are expecte to be numeric
         type_data = self.raw_out.copy()
@@ -182,7 +183,7 @@ class GPInput():
         type_data.loc["exp_out", :] = "number"
         return type_data, num_runs
 
-    def create_value_check_data(self):
+    def create_value_check_data(self) -> pd.DataFrame:
 
         # initialize table for value check --> copy of transposed raw out
         value_data = self.raw_out.transpose().copy()
@@ -194,18 +195,18 @@ class GPInput():
         value_data.loc[:, "exp_out"] = value_data.loc[:, "exp"]
         return value_data.transpose()
 
-    def parse_type_check_data(self):
+    def parse_type_check_data(self) -> None:
 
         # parse type check data to error check object
         self.error_check.load_type_data(self.create_type_check_data())
 
-    def parse_value_check_data(self):
+    def parse_value_check_data(self) -> None:
 
         # parse value check data to error check object
         self.error_check.load_value_data(self.create_value_check_data())
 
     @staticmethod
-    def value_check_fn(value_check, num_run):
+    def value_check_fn(value_check: pd.DataFrame, num_run: int) -> pd.DataFrame:
         """value check: checks if the values of gp inputs are within expected intervas
 
         Parameters
