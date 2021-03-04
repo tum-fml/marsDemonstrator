@@ -1,15 +1,24 @@
+from typing import Any, Dict, Union
+import pathlib
+
 import pandas as pd
+from xlsxwriter import Workbook
+from xlsxwriter.format import Format
+from xlsxwriter.worksheet import Worksheet
+
 from ..designMethods.en_13001_3_3 import Computation, EN_input
+
+format_dict = Dict[str, Union[Format, Dict[str, Union[Format, Dict[str, Format]]]]]
 
 
 class ResultWriter():
 
-    def __init__(self, en_computation: Computation, en_input: EN_input, res_name):
+    def __init__(self, en_computation: Computation, en_input: EN_input, res_name: pathlib.Path) -> None:
         self.en_computation = en_computation
         self.en_input = en_input
         self.res_name = res_name
-        self.formats = None
-        self.summary = None
+        self.formats: format_dict = {}
+        self.summary: Dict[str, pd.DataFrame] = {}
         self.colors = {
             "blue": "#005293",
             "light_blue": "#89C6EA",
@@ -18,11 +27,10 @@ class ResultWriter():
             "grey_dark": "#585858",
             "grey_light": "#9C9C9C"
         }
-        self.workbook = None
-        self.sheets: dict = {}
+        self.workbook: Workbook
+        self.sheets: Dict[str, Worksheet] = {}
 
-    def create_summary(self):
-        self.summary = {}
+    def create_summary(self) -> None:
         for part in ["wheel_f", "wheel_r", "rail"]:
             current_part = getattr(self.en_computation, part)
             self.summary[part] = pd.DataFrame({
@@ -31,7 +39,7 @@ class ResultWriter():
                 "Fatigue proof fulfilled Upper Confidence Level": current_part.proofs["fatigue"]["upper"]
             }).T
 
-    def get_formats(self):
+    def get_formats(self) -> None:
         # set names for first level in result sheet
         first_level_names = ["wheel_f", "rail", "wheel_r", "parameters"]
 
@@ -40,7 +48,7 @@ class ResultWriter():
         second_level_names["parameters"] = ["parameters", "configuration"] # second level for inputs
 
         # init formats dict
-        formats = {
+        formats: Dict[str, Any] = {
             "first_level": {},
             "second_level": {first_level_name: {} for first_level_name in first_level_names}
         }
@@ -77,9 +85,9 @@ class ResultWriter():
         self.formats = formats
 
     # write results and inputs
-    def write(self):
+    def write(self) -> None:
 
-        def write_results():
+        def write_results() -> None:
 
             for part, part_outname in zip(["wheel_f", "wheel_r", "rail"], ["Front Wheel", "Rear Wheel", "Rail"]):
                 # get attributes of current part
@@ -115,7 +123,7 @@ class ResultWriter():
             # merge first level of summary sheet
             self.sheets["summary"].merge_range(0, 0, start_rows["summary"] - 1, 0, "Results", self.formats["first_level"]["wheel_f"])
 
-        def write_inputs():
+        def write_inputs() -> None:
             row_diff_summary_results = start_rows["second_level_res"] - start_rows["summary"]
             for input_type, input_type_outname in zip(["parameters", "configuration"], ["EN-13001", "SC Configuration"]):
                 input_cur = self.en_input.output[input_type]
@@ -146,7 +154,7 @@ class ResultWriter():
                 "Input Variables", self.formats["first_level"]["parameters"]
             )
 
-        with pd.ExcelWriter(self.res_name) as writer:
+        with pd.ExcelWriter(self.res_name) as writer: # pylint: disable=abstract-class-instantiated
             self.workbook = writer.book
             self.get_formats()
 

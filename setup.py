@@ -31,10 +31,11 @@ INSTALL_REQUIRES = [
     # 'scipy',
     'pandas',
     'joblib==0.17.0',
-    # 'gpytorch==1.3.1',
+    'gpytorch>=1.2.0',
     'xlrd==1.2.0',
     'xlsxwriter',
-    'openpyxl'
+    'openpyxl',
+    'pyqt5'
 
 ]
 

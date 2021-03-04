@@ -1,22 +1,25 @@
 import pathlib
+from typing import Optional, Dict
 from ..designMethods.en_13001_3_3 import Computation, LoadCollectivePrediction, EN_input
 from .output import ResultWriter # , create_output_file
+
+none_or_bool = Optional[bool]
 
 
 class Main_application():
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.input = EN_input()
         self.prediction = LoadCollectivePrediction()
         self.computation = Computation()
-        self.input_file_path = None
-        self.input_file_loaded = None
-        self.config_loaded = None
+        self.input_file_path: pathlib.Path
+        self.is_loaded: Dict[str, none_or_bool] = {
+            "config": None, "input_file": None, "reload_file_config": None
+        }
         self.num_run = 0
-        self.outname = None
-        self.file_or_config_reloaded = None
+        self.outname: pathlib.Path
 
-    def read_input_file(self, filename):
+    def read_input_file(self, filename: pathlib.Path) -> Optional[str]:
         # load data for load collective prediction
         self.input.clear_inputs()
         self.input.read_input_df(filename)
@@ -65,7 +68,7 @@ class Main_application():
 
         # check materials and geometries
         self.input.geometry_and_material_error_check()
- 
+
         # # load materials
         # self.input.load_material_input_check(filename, "rail_materials", "wheel_materials")
 
@@ -83,19 +86,19 @@ class Main_application():
         self.input.set_materials_and_geometry()
         self.input.parameters.compute_f_f3()
         self.input.parameters.compute_contact_and_f_1()
-        self.input_file_loaded = True
-        self.file_or_config_reloaded = True
+        self.is_loaded["input_file"] = True
+        self.is_loaded["reload_file_config"] = True
 
         return None
 
-    def run_computation_and_create_output(self, direction):
-        if self.file_or_config_reloaded:
+    def run_computation_and_create_output(self, direction: int) -> None:
+        if self.is_loaded["reload_file_config"]:
             self.num_run += 1
             self.input.recompute_gp_data(self.input.config)
 
             # check gp input variables for values outside expected intervals
             self.input.perform_gp_input_warning_check()
-            
+
             self.prediction.clear_prediction_results()
             self.prediction.predict_kc(self.input.gp_input.norm)
             self.prediction.compute_F_sd_f_all(self.input.gp_input.raw, self.input.config, direction)
@@ -121,9 +124,9 @@ class Main_application():
             results_writer.create_summary()
             results_writer.write()
             # create_output_file(self.computation, self.input, self.outname)
-            self.file_or_config_reloaded = None
+            self.is_loaded["reload_file_config"] = None
 
-    def init_gps(self):
+    def init_gps(self) -> None:
         self.prediction = LoadCollectivePrediction()
         direction = 1
         gp_configs = {"m1": {1: "m1l", -1: "m1r"}, "m2": {1: "m2"}}
@@ -131,6 +134,5 @@ class Main_application():
         parts = ["wf", "wr", "r"]
         # self.prediction.load_gps(gp_config)
         self.prediction.get_gps_kc(gp_config, parts)
-        self.config_loaded = True
-        self.file_or_config_reloaded = True
-
+        self.is_loaded["config"] = True
+        self.is_loaded["config"] = True

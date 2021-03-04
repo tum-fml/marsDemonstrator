@@ -1,8 +1,10 @@
 
 import pathlib
 from itertools import chain
+from typing import List, Optional
 
 import pandas as pd
+import numpy as np
 
 from .gp_input import GPInput
 from .parameter_input import StandardGeometries, StandardMaterials, StandardInput
@@ -10,7 +12,7 @@ from .parameter_input import StandardGeometries, StandardMaterials, StandardInpu
 mypath = pathlib.Path(__file__).parent.absolute()
 
 
-class EN_input():
+class EN_input(): # pylint: disable=too-many-instance-attributes
     """Class that contains all input classes.
 
     Attributes:
@@ -32,32 +34,28 @@ class EN_input():
     config: str
         Current configuration. Either "m1" or "m2".
 
-    config_loaded: bool
-        Whether configuration has been loaded yet.
-
     error_configs:
         Idx of faulty configurations
 
     error_report:
         list of all error reports
-    
+
     """
-    def __init__(self):
+    def __init__(self) -> None:
         self.gp_input = GPInput()
         self.parameters = StandardInput()
         self.materials = StandardMaterials()
         self.geometries = StandardGeometries()
-        self.input_df = None
-        self.output = None
-        self.config = None
-        self.config_loaded = None
-        self.error_configs = []
-        self.error_report = []
+        self.input_df: pd.DataFrame
+        self.output: pd.DataFrame
+        self.config: str
+        self.error_configs: List[np.array] = []
+        self.error_report: List[List[str]] = []
 
-    def read_input_df(self, filename):
+    def read_input_df(self, filename: pathlib.Path):
         self.input_df = pd.read_excel(filename, sheet_name="Input_variables", index_col=[0, 1], header=None)
 
-    def check_input_df(self):
+    def check_input_df(self) -> Optional[bool]:
         # define list of expected input vars
         expected_vars = ["wheel_geometry", "rail_geometry", "alpha", "f_2", "w", "f_f4", "material_wheel", "material_rail", "F_sd_f_w", "F_sd_f_r",
                          "num_cycles_wheel", "num_cycles_rail", "cycle_mode", "c_h", "c_cg_z", "m_m_h", "m_cg_x", "m_m_a", "t_wd", "t_cg_x", "t_m_l", "t_m_a", "w_a",
@@ -72,30 +70,30 @@ class EN_input():
         # check if there are all expected vars
         return None
 
-    def clear_inputs(self):
+    def clear_inputs(self) -> None:
 
         # reset
         self.gp_input = GPInput()
         self.parameters = StandardInput()
         self.materials = StandardMaterials()
         self.geometries = StandardGeometries()
-        self.output = None
+        self.output = pd.DataFrame()
         self.error_configs = []
         self.error_report = []
 
-    def load_gp_input(self, index_name):
+    def load_gp_input(self, index_name: str) -> None:
 
         # load and rearrange gp input
         self.gp_input.read(self.input_df, index_name)
         self.gp_input.rearrange()
 
-    def load_parameter_input(self, index_name):
+    def load_parameter_input(self, index_name: str) -> None:
 
         # load and rearrange parameters.gen_params
         self.parameters.read(self.input_df, index_name)
         self.parameters.rearrange()
 
-    def load_material_input_check(self, filename, sheetname_rail, sheetname_wheel):
+    def load_material_input_check(self, filename: pathlib.Path, sheetname_rail: str, sheetname_wheel: str) -> None:
 
         # load standard materials and check for input errors
         self.materials.read(filename, sheetname_rail, sheetname_wheel)
@@ -105,7 +103,7 @@ class EN_input():
         # get configuration numbers that contain faulty materials
         self.error_configs.append(list(self.parameters.get_material_geometry_error_runs(error_mats, "material_wheel", "material_rail")))
 
-    def load_geometry_input_check(self, filename, sheetname_rail, sheetname_wheel):
+    def load_geometry_input_check(self, filename: pathlib.Path, sheetname_rail: str, sheetname_wheel: str) -> None:
 
         # load standard geometries and check for input errors
         self.geometries.read(filename, sheetname_rail, sheetname_wheel)
@@ -115,7 +113,7 @@ class EN_input():
         # get configuration numbers that contain faulty geometries
         self.error_configs.append(list(self.parameters.get_material_geometry_error_runs(error_geoms, "wheel_geometry", "rail_geometry")))
 
-    def geometry_and_material_error_check(self):
+    def geometry_and_material_error_check(self) -> None:
         error_report, error_mats = self.materials.get_errors("material")
         self.error_report.append(error_report)
 
@@ -128,7 +126,7 @@ class EN_input():
         # get configuration numbers that contain faulty geometries
         self.error_configs.append(list(self.parameters.get_material_geometry_error_runs(error_geoms, "wheel_geometry", "rail_geometry")))
 
-    def perform_error_checks(self):
+    def perform_error_checks(self) -> None:
 
         # run type check on gp input and get error reports and config numbers
         self.gp_input.parse_type_check_data()
@@ -145,7 +143,7 @@ class EN_input():
         self.error_report.append(error_report)
         self.error_configs.append(list(chain(*error_config)))
 
-    def perform_gp_input_warning_check(self):
+    def perform_gp_input_warning_check(self) -> None:
         # clear results of type check
         self.gp_input.error_check.check_results = {}
         self.gp_input.parse_value_check_data()
@@ -153,7 +151,7 @@ class EN_input():
         error_report, _ = self.gp_input.error_check.get_error_reports()
         self.error_report.append(error_report)
 
-    def drop_error_configs(self):
+    def drop_error_configs(self) -> None:
 
         # unpack error configurations into single list
         self.error_configs = list(set(chain(*self.error_configs)))
@@ -171,18 +169,18 @@ class EN_input():
         # update number of runs for value error check for gp input vars
         self.gp_input.error_check.num_runs = len(self.gp_input.raw)
 
-    def recompute_gp_data(self, config):
+    def recompute_gp_data(self, config: str) -> None:
 
         # recompute and normalize gp input
         self.gp_input.recompute(config)
 
-    def set_materials_and_geometry(self):
+    def set_materials_and_geometry(self) -> None:
 
         # get material and geometry parameters for each run
         self.parameters.materials = self.materials.copy_parameters_to_gen_params(self.parameters.materials, self.parameters.gen_params, ["material_wheel", "material_rail"])
         self.parameters.geometries = self.geometries.copy_parameters_to_gen_params(self.parameters.geometries, self.parameters.gen_params, ["wheel_geometry", "rail_geometry"])
 
-    def prepare_for_output(self):
+    def prepare_for_output(self) -> None:
 
         # prepare input for printing back to output file
         conf_out = self.gp_input.raw_out.copy()

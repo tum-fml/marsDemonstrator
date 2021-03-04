@@ -1,25 +1,27 @@
+from typing import Dict, List, Optional, Tuple, Any
+
 import numpy as np
 import pandas as pd
 
 
 class ErrorCheck():
-    def __init__(self, fn_check_val, error_msg, gp_input=None):
+    def __init__(self, fn_check_val: Any, error_msg: Dict[str, str], gp_input: Optional[bool] = None) -> None:
         self.gp_input = gp_input
         self.fn_check_val = fn_check_val
-        self.check_results = {}
+        self.check_results: Dict[str, pd.DataFrame] = {}
         self.error_msg = error_msg
-        self.value_data = None
-        self.type_data = None
-        self.nan_data = None
-        self.num_runs = None
+        self.value_data: pd.DataFrame
+        self.type_data: pd.DataFrame
+        self.nan_data: pd.DataFrame
+        self.num_runs: pd.DataFrame
 
-    def load_type_data(self, data_runs):
+    def load_type_data(self, data_runs: Tuple[pd.DataFrame, int]) -> None:
         self.type_data, self.num_runs = data_runs
 
-    def load_value_data(self, value_data):
+    def load_value_data(self, value_data: pd.DataFrame) -> None:
         self.value_data = value_data
 
-    def check_types(self):
+    def check_types(self) -> None:
         for var_name in self.type_data.columns:
             if self.type_data.loc["exp", var_name] == str:
                 self.type_data[var_name][:self.num_runs] = list(map(isinstance,
@@ -31,15 +33,15 @@ class ErrorCheck():
         if not self.type_data.to_numpy().all():
             self.check_results["type"] = self.type_data
 
-    def check_values(self):
+    def check_values(self) -> None:
         value_check_results = self.fn_check_val(self.value_data, self.num_runs)
         if not value_check_results.to_numpy().all():
             self.check_results["value"] = value_check_results
 
-    def get_error_reports(self):
+    def get_error_reports(self) -> Tuple[List[str], List[List[np.array]]]:
         error_reports = []
-        error_idx = [[]]
-        for check in self.check_results.keys():
+        error_idx: List[List[np.array]] = [[]]
+        for check in self.check_results:
             idx = np.where(self.check_results[check].iloc[:self.num_runs, :].to_numpy() == 0)
             error_vars = self.check_results[check].columns[idx[1]]
             error_rows = idx[0] + 1
