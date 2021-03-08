@@ -184,3 +184,39 @@ class LoadCollectivePrediction():
         # load gps directly from pkl
         gps = joblib.load(mypath / "gps.pkl")
         self.gps = gps[config]
+
+# function to laod all gps into session --> only needed for django app
+
+
+def load_all_gps():
+
+    def init_gp(part: str) -> ExactGPModel:
+        gp_cur = ExactGPModel(data["X"].float(), data[part].float(), gp.likelihoods.GaussianLikelihood().float(), 
+                              gp.kernels.MaternKernel(ard_num_dims=17).float(), gp.means.ZeroMean().float())
+        gp_cur.float()
+        gp_cur.train()
+        for field in model_parameters_cur[part]["state_dict"]:
+            model_parameters_cur[part]["state_dict"][field].float()
+        gp_cur.load_state_dict(model_parameters_cur[part]["state_dict"])
+        gp_cur.covar_module.float()
+        gp_cur.eval()
+        gp_cur.load_cache(model_parameters_cur[part]["pred_dict"], data["X"].float())
+        gp_cur.float()
+        gp_cur.prediction_strategy.mean_cache.data = gp_cur.prediction_strategy.mean_cache.data.float()
+        gp_cur.prediction_strategy.covar_cache.data = gp_cur.prediction_strategy.covar_cache.data.float()
+        return gp_cur
+
+    configs = ["m1r", "m1l", "m2"]
+    parts = ["wf", "wr", "r"]
+    gps_all = {}
+
+    for config in configs:
+
+        model_parameters = joblib.load(mypath / "model_parameters.pkl")
+        data = joblib.load(mypath / "model_data.pkl")
+        data = data[config]
+        model_parameters_cur = model_parameters[config]
+
+        gps_all[config] = {part: init_gp(part) for part in parts}
+
+    return gps_all

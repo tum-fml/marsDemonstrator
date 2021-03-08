@@ -108,13 +108,13 @@ class MarsQTGui(QWidget):
 
         def start():
             self.io_widgets.message_box.clear()
-            if self.main_application.input_file_loaded is None or self.fatal_error is not None:
+            if self.main_application.is_loaded["input_file"] is None or self.fatal_error is not None:
                 self.io_widgets.message_box.setText("Please upload an input file!")
                 self.main_application.input_file_loaded = None
                 return
             self.io_widgets.message_box.setText("Computation started, please wait")
             self.io_widgets.message_box.repaint()
-            if self.main_application.config_loaded is None:
+            if self.main_application.is_loaded["config"]  is None:
                 self.main_application.input.config = self.io_widgets.get_current_config()
                 # init_gps(self.main_application)
                 self.io_widgets.message_box.setText("Updating configuration. This may take up to 30 seconds")
