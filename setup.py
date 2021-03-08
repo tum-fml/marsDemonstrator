@@ -35,8 +35,6 @@ INSTALL_REQUIRES = [
     'xlrd==1.2.0',
     'xlsxwriter',
     'openpyxl',
-    'pyqt5'
-
 ]
 
 PACKAGES = [
