@@ -9,8 +9,8 @@ class En_test(unittest.TestCase):
     def setUp(self):
         self.config = "m1"
         self.direction = 1
-        parent_path = pathlib.Path(__file__).parent.absolute()
-        self.input_file = parent_path  / "test" / "testdata"  / "test_check_inputparameters.xlsx"
+        parent_path = pathlib.Path(__file__).parent.parent.absolute()
+        self.input_file = parent_path  / "testdata"  / "test_check_inputparameters.xlsx"
         self.my_input = EN_input()
         self.my_input.load_parameter_input(self.input_file, "Input_variables")
         self.my_input.load_gp_input(self.input_file, "configuration")
@@ -51,9 +51,9 @@ class En_test(unittest.TestCase):
 
         expected_results = [
             "value error in configuration no. 1; error variable: material_wheel; " 
-                + "expected value from: ['GE-300', 'EN-GJS600-3', 'EN-GJS700-2', '25CrMo4', '34CrMo4', '42CrMo4', '33NiCrMoV14-5', '42CrMo4-hardened']",
+            + "expected value from: ['GE-300', 'EN-GJS600-3', 'EN-GJS700-2', '25CrMo4', '34CrMo4', '42CrMo4', '33NiCrMoV14-5', '42CrMo4-hardened']",
             "value error in configuration no. 3; error variable: material_wheel; "
-                + "expected value from: ['GE-300', 'EN-GJS600-3', 'EN-GJS700-2', '25CrMo4', '34CrMo4', '42CrMo4', '33NiCrMoV14-5', '42CrMo4-hardened']",
+            + "expected value from: ['GE-300', 'EN-GJS600-3', 'EN-GJS700-2', '25CrMo4', '34CrMo4', '42CrMo4', '33NiCrMoV14-5', '42CrMo4-hardened']",
             "value error in configuration no. 3; error variable: contact; expected value from: ['point', 'line']"
         ]
 
@@ -84,7 +84,8 @@ class En_test(unittest.TestCase):
         self.my_input.gp_input.modify_input_scales()
         self.my_input.gp_input.parse_value_check_data()
         self.my_input.gp_input.error_check.check_values()
-        error_report, error_config =  self.my_input.gp_input.error_check.get_error_reports()
-        
+        error_report, error_config = self.my_input.gp_input.error_check.get_error_reports()
+
+
 if __name__ == "__main_":
     unittest.main()
