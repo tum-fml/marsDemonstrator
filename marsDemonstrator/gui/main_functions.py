@@ -135,4 +135,4 @@ class Main_application():
         # self.prediction.load_gps(gp_config)
         self.prediction.get_gps_kc(gp_config, parts)
         self.is_loaded["config"] = True
-        self.is_loaded["config"] = True
+        self.is_loaded["reload_file_config"] = True
