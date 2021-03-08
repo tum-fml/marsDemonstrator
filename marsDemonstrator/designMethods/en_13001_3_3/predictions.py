@@ -1,42 +1,95 @@
 import pathlib
+from typing import Dict, Tuple, List
 
 import gpytorch as gp
+import torch
 import joblib
 import numpy as np
 import pandas as pd
 
 from .gpytorchModels import ExactGPModel
+# from . import gpytorchModels as gpytorchModels
 
 mypath = pathlib.Path(__file__).parent.absolute()
 
 
-class Computed_data():
+class LoadCollectivePrediction():
+    """Class for predicting k_c and v_c for rail and wheels
 
-    def __init__(self):
-        travelled_dist = pd.DataFrame()
+    Attributes:
+    -----------
+    gps: Dict
+        Contains gaussian process models for predicting k_c for wheels and rail
+
+    travelled_dist: Numpy array
+        Computed travelled distance in x-direction over wheels' life cylce
+
+    load_collective: Dict of DataFrames
+        Contains k_c (pred and upper confidence) and f_sd_f
+
+    """    
+
+    def __init__(self) -> None:
+        self.travelled_dist: np.array
         self.load_collective = {part: {"k_c": pd.DataFrame(), "f_sd_f": None} 
                                 for part in ["wf", "wr", "r"]}
-        self.travelled_dist = travelled_dist
-        self.gps = None
+        self.gps: Dict[str, ExactGPModel]
 
-    def predict_kc(self, input_data):
+    def clear_prediction_results(self) -> None:
+        self.load_collective = {part: {"k_c": pd.DataFrame(), "f_sd_f": None} 
+                                for part in ["wf", "wr", "r"]}
+
+    def predict_kc(self, input_data: torch.Tensor) -> None:
+
+        # make predictions for k_c for wheels and rail
         parts = ["wf", "wr", "r"]
         for part in parts:
+            self.gps[part].float()
             self.load_collective[part]["k_c"]["preds"], self.load_collective[part]["k_c"]["lower"], self.load_collective[part]["k_c"]["upper"] = self.gps[part].predict(input_data)
 
-    def recompute_kc(self, f_sd_f_new, part):
+    def recompute_kc(self, f_sd_f_new: pd.Series, part: str):
+        """Recompute k_c with user given f_sd
+
+        Parameters
+        ----------
+        f_sd_f_new : DataFrame / np.array
+            User give f_sd
+        part : str
+            [wf, wr, r]
+        """    
+
+        # f_sd_f is parsed in kN --> convert to N
+        f_sd_f_new *= 1000
+        # get idx of computation runs where user gave f_sd_f and get their f_sd_f   
         idx = idx = np.where(f_sd_f_new != 0)[0]
         f_sd_compute = self.load_collective[part]["f_sd_f"].copy()
         f_sd_compute[idx] = f_sd_f_new[idx]
+
+        # recompute k_c
         for field in ["preds", "upper"]:
             k_c_new = self.load_collective[part]["k_c"][field] * (self.load_collective[part]["f_sd_f"] ** (10 / 3))
             self.load_collective[part]["k_c"][field] = k_c_new / (f_sd_compute ** (10 / 3))
+
+        # copy user given f_sd_f into load_collective's f_sd_f
         self.load_collective[part]["f_sd_f"] = f_sd_compute
 
-    def predict_travelled_dist(self, input_data):
-        self.travelled_dist = np.ones(len(input_data)) * 10000000
+    def predict_travelled_dist(self, cycle_mode: pd.Series, num_cycles: pd.Series, rack_length: pd.Series) -> None:
 
-    def compute_F_sd_f_all(self, input_data, config, crane_direction):
+        # set cycle mode to 1, 2, or 4 in case of bad input
+        num_cycles = num_cycles.to_numpy().astype(int)
+        cycle_mode = cycle_mode.to_numpy().astype(int)
+        rack_length = rack_length.to_numpy().astype(int)
+        cycle_mode[cycle_mode <= 1] = 1
+        cycle_mode[np.logical_and(cycle_mode > 1, cycle_mode <= 2)] = 2
+        cycle_mode[cycle_mode > 2] = 4
+
+        # compute travelled dist based on cycle mode number of cylces for wheels and rack length
+        mean_travelled_dist = np.ones(len(cycle_mode)) * 0.3
+        mean_travelled_dist[np.where(cycle_mode == 1)[0]] = 0.4
+        mean_travelled_dist[np.where(cycle_mode == 2)[0]] = 0.5
+        self.travelled_dist = num_cycles * rack_length * mean_travelled_dist
+
+    def compute_F_sd_f_all(self, input_data: pd.DataFrame, config: str, crane_direction: int) -> None:
 
         f_wf = np.zeros((4, len(input_data)))
         f_wr = f_wf.copy()
@@ -52,7 +105,7 @@ class Computed_data():
         self.load_collective["r"]["f_sd_f"] = np.max(np.vstack((f_wf, f_wr)), axis=0)
 
     @staticmethod
-    def get_crane_configuration(input_data, config):
+    def get_crane_configuration(input_data: pd.DataFrame, config: str) -> pd.DataFrame:
         crane_configuration = input_data.copy()
         crane_configuration["l_m_t"] = crane_configuration["l_m"] + crane_configuration["l_m_ld"]
         crane_configuration["l_lv_x"] = crane_configuration["t_wd"] * crane_configuration["l_cg_x"]
@@ -71,7 +124,7 @@ class Computed_data():
         return crane_configuration
 
     @staticmethod
-    def compute_F_sd_f(crane_configuration, a_x, a_z, crane_direction):
+    def compute_F_sd_f(crane_configuration: pd.DataFrame, a_x: pd.Series, a_z: pd.Series, crane_direction: int) -> Tuple[np.array, np.array]:
         g_force = 9.81
         a_x = -a_x
         a_z = -a_z
@@ -101,22 +154,69 @@ class Computed_data():
 
         return np.array(f_wf), np.array(f_wr)
 
-    def get_gps_kc(self, config, parts):
+    def get_gps_kc(self, config: str, parts: List[str]) -> None:
 
-        def init_gp(part):
-            gp_cur = ExactGPModel(data["X"], data[part], gp.likelihoods.GaussianLikelihood(), 
-                                  gp.kernels.MaternKernel(ard_num_dims=17), gp.means.ZeroMean())
-            gp_cur.double()
+        def init_gp(part: str) -> ExactGPModel:
+            gp_cur = ExactGPModel(data["X"].float(), data[part].float(), gp.likelihoods.GaussianLikelihood().float(), 
+                                  gp.kernels.MaternKernel(ard_num_dims=17).float(), gp.means.ZeroMean().float())
+            gp_cur.float()
             gp_cur.train()
-            gp_cur.load_state_dict(model_parameters[part]["state_dict"])
+            for field in model_parameters_cur[part]["state_dict"]:
+                model_parameters_cur[part]["state_dict"][field].float()
+            gp_cur.load_state_dict(model_parameters_cur[part]["state_dict"])
+            gp_cur.covar_module.float()
             gp_cur.eval()
-            gp_cur.load_cache(model_parameters[part]["pred_dict"], data["X"])
+            gp_cur.load_cache(model_parameters_cur[part]["pred_dict"], data["X"].float())
+            gp_cur.float()
+            gp_cur.prediction_strategy.mean_cache.data = gp_cur.prediction_strategy.mean_cache.data.float()
+            gp_cur.prediction_strategy.covar_cache.data = gp_cur.prediction_strategy.covar_cache.data.float()
             return gp_cur
 
         # init gps
         model_parameters = joblib.load(mypath / "model_parameters.pkl")
         data = joblib.load(mypath / "model_data.pkl")
         data = data[config]
-        model_parameters = model_parameters[config]
+        model_parameters_cur = model_parameters[config]
 
         self.gps = {part: init_gp(part) for part in parts}
+
+    def load_gps(self, config: str) -> None:
+        # load gps directly from pkl
+        gps = joblib.load(mypath / "gps.pkl")
+        self.gps = gps[config]
+
+# function to laod all gps into session --> only needed for django app
+
+
+def load_all_gps():
+
+    def init_gp(part: str) -> ExactGPModel:
+        gp_cur = ExactGPModel(data["X"].float(), data[part].float(), gp.likelihoods.GaussianLikelihood().float(), 
+                              gp.kernels.MaternKernel(ard_num_dims=17).float(), gp.means.ZeroMean().float())
+        gp_cur.float()
+        gp_cur.train()
+        for field in model_parameters_cur[part]["state_dict"]:
+            model_parameters_cur[part]["state_dict"][field].float()
+        gp_cur.load_state_dict(model_parameters_cur[part]["state_dict"])
+        gp_cur.covar_module.float()
+        gp_cur.eval()
+        gp_cur.load_cache(model_parameters_cur[part]["pred_dict"], data["X"].float())
+        gp_cur.float()
+        gp_cur.prediction_strategy.mean_cache.data = gp_cur.prediction_strategy.mean_cache.data.float()
+        gp_cur.prediction_strategy.covar_cache.data = gp_cur.prediction_strategy.covar_cache.data.float()
+        return gp_cur
+
+    configs = ["m1r", "m1l", "m2"]
+    parts = ["wf", "wr", "r"]
+    gps_all = {}
+
+    for config in configs:
+
+        model_parameters = joblib.load(mypath / "model_parameters.pkl")
+        data = joblib.load(mypath / "model_data.pkl")
+        data = data[config]
+        model_parameters_cur = model_parameters[config]
+
+        gps_all[config] = {part: init_gp(part) for part in parts}
+
+    return gps_all
