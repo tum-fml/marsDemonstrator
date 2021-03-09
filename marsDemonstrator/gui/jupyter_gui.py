@@ -10,7 +10,7 @@ from typing import Optional
 
 import ipywidgets as widgets
 from IPython.display import FileLink, display
-from marsDemonstrator.gui.main_functions import Main_application
+from marsDemonstrator.main_app import MainApplication
 
 # %%
 # !pip install voila
@@ -18,11 +18,11 @@ from marsDemonstrator.gui.main_functions import Main_application
 
 
 # %%
-class MARSGui():
+class MARSJupyterGui():
 
     def __init__(self):
         self.fatal_error = None
-        self.main_application = Main_application()
+        self.main_application = MainApplication()
 
         self.input_file = FileLink("./tests/input_file/inputparameters.xlsx", result_html_prefix="Click here to download example input file: ")
 
@@ -109,7 +109,7 @@ class MARSGui():
         self.out_errors.clear_output()
         self.out_file.clear_output()
         # if there were never inputs loaded throw error message 
-        if self.main_application.input_file_loaded is None or self.fatal_error:
+        if self.main_application.is_loaded["input_file"] is None or self.fatal_error:
             if self.uploader._counter == 0: # pylint: disable=protected-access
                 with self.out_information:
                     print("Please upload an excel file")
@@ -134,7 +134,7 @@ class MARSGui():
                 return
         try:
             # if gps for configuration were not loaded yet load them
-            if self.main_application.config_loaded is None:
+            if self.main_application.is_loaded["config"] is None:
                 self.init_gps(None)
             with self.out_information:
                 print("Start Computation") 
