@@ -95,6 +95,10 @@ class Main_application():
             if "Worksheet" in str(e):
                 return "broken input file: one or more required input sheets were missing. required sheets are: Input_variables, rail_materials, wheel_materials, wheel_geometries, rail_geometries"
             return "unknown fatal error"
+        except Exception as e:
+            if "sheet" in str(e):
+                return "broken input file: one or more required input sheets were missing. required sheets are: Input_variables, rail_materials, wheel_materials, wheel_geometries, rail_geometries"
+            return "unknown fatal error, please redownload input file"
 
     def run_computation_and_create_output(self, direction: int) -> None:
         if self.is_loaded["reload_file_config"]:
