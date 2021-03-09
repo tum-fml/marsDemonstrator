@@ -6,7 +6,7 @@ from .output import ResultWriter # , create_output_file
 none_or_bool = Optional[bool]
 
 
-class Main_application():
+class MainApplication():
 
     def __init__(self) -> None:
         self.input = EN_input()
