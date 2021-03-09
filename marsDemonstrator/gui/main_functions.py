@@ -22,74 +22,79 @@ class Main_application():
     def read_input_file(self, filename: pathlib.Path) -> Optional[str]:
         # load data for load collective prediction
         self.input.clear_inputs()
-        self.input.read_input_df(filename)
-        bad_file = self.input.check_input_df()
-        error_msg = None
+        try:
+            self.input.read_input_df(filename)
+            bad_file = self.input.check_input_df()
+            error_msg = None
 
-        if bad_file:
-            error_msg = "broken input file: main sheet has missing vars"
+            if bad_file:
+                error_msg = "broken input file: main sheet has missing vars"
 
-        if len(self.input.input_df.columns) == 1:
-            error_msg = "more than 3 empty cells in all configurations"
+            if len(self.input.input_df.columns) == 1:
+                error_msg = "more than 3 empty cells in all configurations"
 
-        if error_msg:
-            return error_msg
+            if error_msg:
+                return error_msg
 
-        self.input.load_gp_input("Stacker Crane (SC) And Rack Configuration")
+            self.input.load_gp_input("Stacker Crane (SC) And Rack Configuration")
 
-        # load en 13001 parameters
-        self.input.load_parameter_input("EN-13001-3-3")
+            # load en 13001 parameters
+            self.input.load_parameter_input("EN-13001-3-3")
 
-        # load materials
-        wheel_error, rail_error = self.input.materials.read(filename, "rail_materials", "wheel_materials")
+            # load materials
+            wheel_error, rail_error = self.input.materials.read(filename, "rail_materials", "wheel_materials")
 
-        if wheel_error:
-            error_msg = "broken input file: wheel material sheet has missing vars"
-        if rail_error:
-            error_msg = "broken input file: rail material sheet has missing vars"
-        if wheel_error and rail_error:
-            error_msg = "broken input file: wheel and rail material sheets have missing vars"
+            if wheel_error:
+                error_msg = "broken input file: wheel material sheet has missing vars"
+            if rail_error:
+                error_msg = "broken input file: rail material sheet has missing vars"
+            if wheel_error and rail_error:
+                error_msg = "broken input file: wheel and rail material sheets have missing vars"
 
-        if error_msg:
-            return error_msg
+            if error_msg:
+                return error_msg
 
-        # load geometries
-        wheel_error, rail_error = self.input.geometries.read(filename, "rail_geometries", "wheel_geometries")
+            # load geometries
+            wheel_error, rail_error = self.input.geometries.read(filename, "rail_geometries", "wheel_geometries")
 
-        if wheel_error:
-            error_msg = "broken input file: wheel geometry sheet has missing vars"
-        if rail_error:
-            error_msg = "broken input file: rail geometry sheet has missing vars"
-        if wheel_error and rail_error:
-            error_msg = "broken input file: wheel and rail geometry sheets have missing vars"
+            if wheel_error:
+                error_msg = "broken input file: wheel geometry sheet has missing vars"
+            if rail_error:
+                error_msg = "broken input file: rail geometry sheet has missing vars"
+            if wheel_error and rail_error:
+                error_msg = "broken input file: wheel and rail geometry sheets have missing vars"
 
-        if error_msg:
-            return error_msg
+            if error_msg:
+                return error_msg
 
-        # check materials and geometries
-        self.input.geometry_and_material_error_check()
+            # check materials and geometries
+            self.input.geometry_and_material_error_check()
 
-        # # load materials
-        # self.input.load_material_input_check(filename, "rail_materials", "wheel_materials")
+            # # load materials
+            # self.input.load_material_input_check(filename, "rail_materials", "wheel_materials")
 
-        # # load rail and wheel geometries
-        # self.input.load_geometry_input_check(filename, "rail_geometries", "wheel_geometries")
+            # # load rail and wheel geometries
+            # self.input.load_geometry_input_check(filename, "rail_geometries", "wheel_geometries")
 
-        # check for input errors and drop faulty configurations
-        self.input.perform_error_checks()
-        self.input.drop_error_configs()
+            # check for input errors and drop faulty configurations
+            self.input.perform_error_checks()
+            self.input.drop_error_configs()
 
-        if len(self.input.parameters.gen_params) == 0:
-            return "at least one error in all configurations"
+            if len(self.input.parameters.gen_params) == 0:
+                return "at least one error in all configurations"
 
-        # precompute factors and set geometriy and material parameters
-        self.input.set_materials_and_geometry()
-        self.input.parameters.compute_f_f3()
-        self.input.parameters.compute_contact_and_f_1()
-        self.is_loaded["input_file"] = True
-        self.is_loaded["reload_file_config"] = True
+            # precompute factors and set geometriy and material parameters
+            self.input.set_materials_and_geometry()
+            self.input.parameters.compute_f_f3()
+            self.input.parameters.compute_contact_and_f_1()
+            self.is_loaded["input_file"] = True
+            self.is_loaded["reload_file_config"] = True
 
-        return None
+            return None
+        except ValueError as e:
+            if "Worksheet" in str(e):
+                return "broken input file: one or more required input sheets were missing. required sheets are: Input_variables, rail_materials, wheel_materials, wheel_geometries, rail_geometries"
+            return "unknown fatal error"
 
     def run_computation_and_create_output(self, direction: int) -> None:
         if self.is_loaded["reload_file_config"]:
@@ -115,7 +120,8 @@ class Main_application():
             self.computation.load_results_all()
 
             # pick a filename that doesn't exist yet
-            self.outname = self.input_file_path.parent.absolute() / f"output_no{self.num_run}.xlsx"
+            if not self.outname:
+                self.outname = self.input_file_path.parent.absolute() / f"output_no{self.num_run}.xlsx"
             while self.outname.is_file():
                 self.num_run += 1
                 self.outname = self.input_file_path.parent.absolute() / f"output_no{self.num_run}.xlsx"
