@@ -167,7 +167,7 @@ class Part(): # pylint: disable=too-many-instance-attributes
         self.F_sd = pd.to_numeric(predicted_data.load_collective[part]["f_sd_f"])
 
         # dictionary for proor results
-        self.proofs = {"static": None, "fatigue": pd.DataFrame()}
+        self.proofs: Dict[str, Union[pd.Series, pd.DataFrame]] = {"static": pd.Series(), "fatigue": pd.DataFrame()}
 
         # load collective data (k_c and v_c) for computing F_rd_f
         self.load_collective = predicted_data.load_collective[part]
@@ -253,12 +253,11 @@ class Part(): # pylint: disable=too-many-instance-attributes
 
     def load_results(self):
         self.results["static"] = pd.DataFrame({
-            "Deisgn-Contact-Force-F_sd_s [kN]": self.F_sd / 1000,
+            "Design-Contact-Force-F_sd_s [kN]": self.F_sd / 1000,
             "Limit-Design-Contact-Force-Static-F_rd_s [kN]": self.F_rd["F_rd_s"] / 1000,
             "Condition-Fullfilled": self.proofs["static"]
         })
 
-        self.results["fatigue"] = {"prediction": {}, "upper_confidence": {}}
         self.results["fatigue"] = pd.DataFrame({
             "Deisgn-Contact-Force-F_sd_f [kN]": self.F_sd / 1000,
             "Reference-Contact-Force-F_u [kN]": self.F_rd["F_u"] / 1000,
