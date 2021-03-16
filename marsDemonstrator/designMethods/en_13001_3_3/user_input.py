@@ -1,13 +1,14 @@
 
 import pathlib
 from itertools import chain
-from typing import List, Optional
+from typing import List
 
 import pandas as pd
 import numpy as np
 
 from .gp_input import GPInput
 from .parameter_input import StandardGeometries, StandardMaterials, StandardInput
+from .input_error_check import InputFileError
 
 mypath = pathlib.Path(__file__).parent.absolute()
 
@@ -41,6 +42,7 @@ class EN_input(): # pylint: disable=too-many-instance-attributes
         list of all error reports
 
     """
+
     def __init__(self) -> None:
         self.gp_input = GPInput()
         self.parameters = StandardInput()
@@ -48,14 +50,13 @@ class EN_input(): # pylint: disable=too-many-instance-attributes
         self.geometries = StandardGeometries()
         self.input_df: pd.DataFrame
         self.output: pd.DataFrame
-        self.config: str
         self.error_configs: List[np.array] = []
         self.error_report: List[List[str]] = []
 
     def read_input_df(self, filename: pathlib.Path):
         self.input_df = pd.read_excel(filename, sheet_name="Input_variables", index_col=[0, 1], header=None)
 
-    def check_input_df(self) -> Optional[bool]:
+    def check_input_df(self) -> None:
         # define list of expected input vars
         expected_vars = ["wheel_geometry", "rail_geometry", "alpha", "f_2", "w", "f_f4", "material_wheel", "material_rail", "F_sd_f_w", "F_sd_f_r",
                          "num_cycles_wheel", "num_cycles_rail", "cycle_mode", "c_h", "c_cg_z", "m_m_h", "m_cg_x", "m_m_a", "t_wd", "t_cg_x", "t_m_l", "t_m_a", "w_a",
@@ -63,12 +64,11 @@ class EN_input(): # pylint: disable=too-many-instance-attributes
 
         self.input_df = self.input_df[~self.input_df.index.duplicated(keep='first')]
         self.input_df = self.input_df[(self.input_df.iloc[:, 0].isin(expected_vars))]
-        if not pd.DataFrame(expected_vars).isin(list(self.input_df.iloc[:, 0])).all().loc[0]:
-            return True
-        self.input_df = self.input_df.loc[:, (self.input_df.isnull().sum(axis=0) <= 3)]
 
-        # check if there are all expected vars
-        return None
+        # check if there are all expected variables
+        if not pd.DataFrame(expected_vars).isin(list(self.input_df.iloc[:, 0])).all().loc[0]:
+            raise InputFileError("Broken input file: Main sheet has missing variables")
+        self.input_df = self.input_df.loc[:, (self.input_df.isnull().sum(axis=0) <= 3)]
 
     def clear_inputs(self) -> None:
 
@@ -80,6 +80,10 @@ class EN_input(): # pylint: disable=too-many-instance-attributes
         self.output = pd.DataFrame()
         self.error_configs = []
         self.error_report = []
+
+    def clear_computed_inputs(self):
+        self.parameters.geometries = {"wheel": pd.DataFrame(), "rail": pd.DataFrame()}
+        self.parameters.materials = {"wheel": pd.DataFrame(), "rail": pd.DataFrame()}
 
     def load_gp_input(self, index_name: str) -> None:
 
