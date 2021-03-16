@@ -76,9 +76,9 @@ class LoadCollectivePrediction():
     def predict_travelled_dist(self, cycle_mode: pd.Series, num_cycles: pd.Series, rack_length: pd.Series) -> None:
 
         # set cycle mode to 1, 2, or 4 in case of bad input
-        num_cycles = num_cycles.to_numpy().astype(int)
+        num_cycles = num_cycles.to_numpy()
         cycle_mode = cycle_mode.to_numpy().astype(int)
-        rack_length = rack_length.to_numpy().astype(int)
+        rack_length = rack_length.to_numpy()
         cycle_mode[cycle_mode <= 1] = 1
         cycle_mode[np.logical_and(cycle_mode > 1, cycle_mode <= 2)] = 2
         cycle_mode[cycle_mode > 2] = 4
