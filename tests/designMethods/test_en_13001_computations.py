@@ -2,9 +2,9 @@ import unittest
 import pathlib
 import numpy as np
 
-from marsDemonstrator.designMethods.en_13001_3_3 import EN_input
-from marsDemonstrator.designMethods.en_13001_3_3 import LoadCollectivePrediction
-from marsDemonstrator.designMethods.en_13001_3_3 import Computation
+from marsDemonstrator.designMethods.en_13001_3_3 import EN_input # pylint: disable=import-error
+from marsDemonstrator.designMethods.en_13001_3_3 import LoadCollectivePrediction # pylint: disable=import-error
+from marsDemonstrator.designMethods.en_13001_3_3 import Computation # pylint: disable=import-error
 
 
 class En_test(unittest.TestCase):
@@ -80,7 +80,7 @@ class En_test(unittest.TestCase):
         np.testing.assert_almost_equal(list(self.expected_results["k_c_wr_upper_new"]), list(self.predicted_data.load_collective["wr"]["k_c"]["upper"]))
 
     def test_computed_proofs(self):
-        self.predicted_data.predict_travelled_dist(self.my_input.parameters.gen_params["cycle_mode"], self.my_input.parameters.gen_params["num_cycles_wheel"], self.my_input.gp_input.raw["r_l"])
+        self.predicted_data.predict_travelled_dist(self.my_input.gp_input.raw["cycle_mode"], self.my_input.gp_input.raw["num_cycles_wheel"], self.my_input.gp_input.raw["r_l"])
         self.load_load_collective()
 
         self.en_computation = Computation()
@@ -104,16 +104,16 @@ class En_test(unittest.TestCase):
         np.testing.assert_almost_equal(list(self.expected_results["f_ff_wheel"]), list(self.en_computation.wheel_f.factors["f_ff"]))
         np.testing.assert_almost_equal(list(self.expected_results["f_ff_wheel"]), list(self.en_computation.wheel_r.factors["f_ff"]))
 
-        np.testing.assert_almost_equal(list(self.expected_results["v_c_rail"]), list(self.en_computation.rail.load_collective["v_c"]))
-        np.testing.assert_almost_equal(list(self.expected_results["v_c_wheel"]), list(self.en_computation.wheel_f.load_collective["v_c"]))
-        np.testing.assert_almost_equal(list(self.expected_results["v_c_wheel"]), list(self.en_computation.wheel_r.load_collective["v_c"]))
+        np.testing.assert_almost_equal(list(self.expected_results["v_c_rail"]), list(self.en_computation.rail.load_collective["v_c"]), decimal=4)
+        np.testing.assert_almost_equal(list(self.expected_results["v_c_wheel"]), list(self.en_computation.wheel_f.load_collective["v_c"]), decimal=4)
+        np.testing.assert_almost_equal(list(self.expected_results["v_c_wheel"]), list(self.en_computation.wheel_r.load_collective["v_c"]), decimal=4)
 
         self.load_F_u_ff_v_c()
         self.en_computation.des_params["E_m"] = self.design_params["E_m"]
         self.en_computation.compute_F_rd_all()
-        np.testing.assert_almost_equal(list(self.expected_results["F_rd_f_r"]), list(self.en_computation.rail.F_rd["F_rd_f"]["preds"]))
-        np.testing.assert_almost_equal(list(self.expected_results["F_rd_f_wf"]), list(self.en_computation.wheel_f.F_rd["F_rd_f"]["preds"]))
-        np.testing.assert_almost_equal(list(self.expected_results["F_rd_f_wr"]), list(self.en_computation.wheel_r.F_rd["F_rd_f"]["preds"]))
+        np.testing.assert_almost_equal(list(self.expected_results["F_rd_f_r"]), list(self.en_computation.rail.F_rd["F_rd_f"]["preds"]), decimal=4)
+        np.testing.assert_almost_equal(list(self.expected_results["F_rd_f_wf"]), list(self.en_computation.wheel_f.F_rd["F_rd_f"]["preds"]), decimal=4)
+        np.testing.assert_almost_equal(list(self.expected_results["F_rd_f_wr"]), list(self.en_computation.wheel_r.F_rd["F_rd_f"]["preds"]), decimal=4)
 
     def load_k_c(self):
         self.predicted_data.load_collective["r"]["k_c"]["preds"] = self.load_collective["k_c_rail_preds"]

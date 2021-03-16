@@ -2,7 +2,7 @@ import unittest
 import pathlib
 import numpy as np
 
-from marsDemonstrator.designMethods.en_13001_3_3 import EN_input
+from marsDemonstrator.designMethods.en_13001_3_3 import EN_input # pyling: disable=import-error
 
 
 class En_test(unittest.TestCase):
