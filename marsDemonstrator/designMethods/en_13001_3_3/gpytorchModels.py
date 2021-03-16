@@ -10,8 +10,8 @@ class ExactGPModel(gp.models.ExactGP):
         self.covar_module = ScaleKernel(kernel)
         self.float()
         likelihood.float()
-        
-    def forward(self, x):
+
+    def forward(self, x): # pylint: disable=arguments-differ
         mean = self.mean_module(x)
         covar = self.covar_module(x)
         return gp.distributions.MultivariateNormal(mean, covar)
@@ -32,7 +32,7 @@ class ExactGPModel(gp.models.ExactGP):
             # mean = pred_dict["mean"]
             # train_prior = gp.distributions.MultivariateNormal(mean, gp.lazy.LazyEvaluatedKernelTensor(x1, x2, self.covar_module))
             # self.prediction_strategy = gp.models.exact_prediction_strategies.prediction_strategy(self.train_inputs, train_prior, self.train_targets, self.likelihood)
-            
+
             # self.prediction_strategy._memoize_cache = pred_dict["chached_data"]
             # self.prediction_strategy = pred_dict["pred_strat"]
             # self.predict(x[0:1, :])

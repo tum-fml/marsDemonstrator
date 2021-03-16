@@ -5,8 +5,8 @@ from typing import Dict, Union
 import numpy as np
 import pandas as pd
 
-from .predictions import LoadCollectivePrediction
-from .user_input import EN_input
+from .load_collective import LoadCollectivePrediction
+from .mars_input import MARSInput
 
 # import abc
 
@@ -14,7 +14,7 @@ from .user_input import EN_input
 Coefficients = namedtuple("Coefficients", ["Y_m", "Y_cf", "m", "Y_p"])
 
 
-class Computation():
+class ENComputation():
     """Class for doing all computations
     """
     # functions
@@ -29,7 +29,7 @@ class Computation():
         self.D_w: pd.DataFrame
         self.v_c_data: Dict[str, np.array]
 
-    def load_data(self, user_input: EN_input, predicted_data: LoadCollectivePrediction) -> None:
+    def load_data(self, user_input: MARSInput, predicted_data: LoadCollectivePrediction) -> None:
         # data frame with data for en computation
         input_df = user_input.parameters.gen_params
         gp_input = user_input.gp_input.raw
@@ -105,13 +105,6 @@ class Computation():
         self.wheel_r.load_results()
         self.rail.load_results()
 
-    # def compute_min_d(self):
-    #     min_d_r_s = self.rail.compute_min_d_s()
-    #     min_d_r_f = self.rail.compute_min_d_f()
-    #     min_d_w_s = self.wheel.compute_min_d_s()
-    #     min_d_w_f = self.wheel.compute_min_d_f()
-    #     self.wheel.min_d = max(min_d_r_s, min_d_r_f, min_d_w_s, min_d_w_f)
-
 
 class Part(): # pylint: disable=too-many-instance-attributes
 
@@ -148,7 +141,7 @@ class Part(): # pylint: disable=too-many-instance-attributes
         Results for output file
     """    
 
-    def __init__(self, user_input: EN_input, predicted_data: LoadCollectivePrediction, part_type: str, part: str) -> None:
+    def __init__(self, user_input: MARSInput, predicted_data: LoadCollectivePrediction, part_type: str, part: str) -> None:
 
         # load materials and geometries 
         self.material = user_input.parameters.materials[part_type]
@@ -236,9 +229,6 @@ class Part(): # pylint: disable=too-many-instance-attributes
                                * ((math.pi * D_w * design_params["b"] * (1 - self.material["v"] ** 2) 
                                    * design_params["f_1"] * design_params["f_2"]) 
                                    / design_params["E_m"]))
-        # self.F_rd["F_rd_s"] = ((factor ** 2) * design_params["f_1"] * design_params["f_2"] / coefficients.Y_m 
-        #                        * math.pi * D_w * design_params["b"] * (1 - self.material["v"] ** 2)
-        #                        / design_params["E_m"])
 
     def compute_F_rd_f(self, coefficients: Coefficients):
         self.F_rd["F_rd_f"]["preds"] = ((self.F_rd["F_u"] * self.factors["f_ff"]) 
@@ -271,33 +261,6 @@ class Part(): # pylint: disable=too-many-instance-attributes
             "Limit-Force-F_rd_f-Prediction-Upper-Confidence-Interval [kN]": self.F_rd["F_rd_f"]["upper"] / 1000,
             "Condition-Fullfilled-Upper-Confidence_Interval": self.proofs["fatigue"]["preds"]
         })
-
-    # @abc.abstractmethod
-    # def compute_v_c(self):
-    #     return
-
-    # def compute_min_d_f(self, factors, coefficients, b, E_m):
-    #     s_c = self.compute_s_c()
-    #     if self.material.hardened == 'False':
-    #         denominator = factors["f_f"]*math.pi*(3*self.material.HB)**2*b*(1-coefficients.v**2)
-    #         numerator = (self.F_sd_f*coefficients.Y_cf*s_c**(1/coefficients.m)*E_m)
-    #         min_d_f = numerator / denominator
-    #     else:
-    #         denominator = (factors["f_f"]*math.pi*(1.8*self.material.f_y)**2*b*(1-coefficients.v**2))
-    #         numerator = (self.F_sd_f*coefficients.Y_cf*s_c**(1/coefficients.m)*E_m)
-    #         min_d_f = numerator / denominator
-    #     return min_d_f
-
-    # def compute_min_d_s(self, factors, coefficients, b, E_m):
-    #     if self.material.hardened == 'False':
-    #         numerator = self.F_sd_s*coefficients.Y_m * E_m
-    #         denominator = (7*self.material.HB)**2*math.pi*b*(1-coefficients.v**2)*factors["f_1"]*factors["f_2"]
-    #         min_d_s = numerator / denominator
-    #     else:
-    #         numerator = self.F_sd_s*coefficients.Y_m*E_m
-    #         denominator = (4.2*self.material.f_y)**2*math.pi*b*(1-coefficients.v**2)*factors["f_1"]*factors["f_2"]
-    #         min_d_s = numerator / denominator
-    #     return min_d_s
 
 
 class Wheel(Part):

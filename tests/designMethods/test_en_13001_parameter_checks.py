@@ -2,7 +2,7 @@ import unittest
 import pathlib
 from itertools import chain
 
-from marsDemonstrator.designMethods.en_13001_3_3 import EN_input
+from marsDemonstrator.designMethods.en_13001_3_3 import MARSInput # pylint: disable=import-error
 
 
 class En_test(unittest.TestCase):
@@ -11,7 +11,7 @@ class En_test(unittest.TestCase):
         self.direction = 1
         parent_path = pathlib.Path(__file__).parent.parent.absolute()
         self.input_file = parent_path  / "testdata"  / "test_check_inputparameters.xlsx"
-        self.my_input = EN_input()
+        self.my_input = MARSInput()
         self.my_input.load_parameter_input(self.input_file, "Input_variables")
         self.my_input.load_gp_input(self.input_file, "configuration")
 

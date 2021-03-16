@@ -1,7 +1,7 @@
 import pathlib
 import numpy as np
 import pandas as pd
-from ..designMethods.en_13001_3_3 import Computation, LoadCollectivePrediction, EN_input
+from ..designMethods.en_13001_3_3 import ENComputation, LoadCollectivePrediction, MARSInput
 from .output import ResultWriter
 from ..designMethods.en_13001_3_3.input_error_check import InputFileError
 
@@ -9,11 +9,11 @@ from ..designMethods.en_13001_3_3.input_error_check import InputFileError
 class MainApplication():
 
     def __init__(self) -> None:
-        self.input = EN_input()
+        self.input = MARSInput()
         self.prediction = LoadCollectivePrediction()
-        self.computation: Computation
+        self.computation: ENComputation
         self.input_file_path: pathlib.Path
-        self.outname: pathlib.Path
+        self.output_file_path: pathlib.Path
         self.result_writer: ResultWriter
         self.sc_direction: int
         self.config: str
@@ -87,7 +87,7 @@ class MainApplication():
         self.prediction.predict_travelled_dist(self.input.gp_input.raw["cycle_mode"], self.input.gp_input.raw["num_cycles_wheel"], self.input.gp_input.raw["r_l"])
 
         # create computation instance and compute configs
-        self.computation = Computation()
+        self.computation = ENComputation()
         self.computation.load_data(self.input, self.prediction)
         self.computation.compute_pre_F_rd_all()
         self.computation.compute_F_rd_all()
@@ -95,7 +95,7 @@ class MainApplication():
 
     def initialize_result_writer(self):
         # pick a filename that doesn't exist yet
-        self.result_writer = ResultWriter(self.computation, self.input, self.outname)
+        self.result_writer = ResultWriter(self.computation, self.input, self.output_file_path)
         self.result_writer.create_summary()
 
     def computation_mode_1(self) -> None:
@@ -108,7 +108,7 @@ class MainApplication():
 
         self.initialize_result_writer()
         self.result_writer.write()
-        # create_output_file(self.computation, self.input, self.outname)
+        # create_output_file(self.computation, self.input, self.output_file_path)
 
     def computation_mode_2(self) -> None:
         self.prepare_gp_input()
@@ -157,7 +157,7 @@ class MainApplication():
         self.result_writer.summary["wheel_r"] = self.result_writer.summary["wheel_r"].T
 
         self.result_writer.write()
-        # create_output_file(self.computation, self.input, self.outname)
+        # create_output_file(self.computation, self.input, self.output_file_path)
 
     def init_gps(self) -> None:
         self.prediction = LoadCollectivePrediction()
