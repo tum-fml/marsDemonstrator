@@ -1,9 +1,9 @@
 import pathlib
-from typing import Optional, Dict
+import numpy as np
+import pandas as pd
 from ..designMethods.en_13001_3_3 import Computation, LoadCollectivePrediction, EN_input
-from .output import ResultWriter # , create_output_file
-
-none_or_bool = Optional[bool]
+from .output import ResultWriter
+from ..designMethods.en_13001_3_3.input_error_check import InputFileError
 
 
 class MainApplication():
@@ -11,30 +11,22 @@ class MainApplication():
     def __init__(self) -> None:
         self.input = EN_input()
         self.prediction = LoadCollectivePrediction()
-        self.computation = Computation()
+        self.computation: Computation
         self.input_file_path: pathlib.Path
-        self.is_loaded: Dict[str, none_or_bool] = {
-            "config": None, "input_file": None, "reload_file_config": None
-        }
-        self.num_run = 0
         self.outname: pathlib.Path
+        self.result_writer: ResultWriter
+        self.sc_direction: int
+        self.config: str
 
-    def read_input_file(self, filename: pathlib.Path) -> Optional[str]:
+    def read_input_file(self, filename: pathlib.Path) -> None:
         # load data for load collective prediction
         self.input.clear_inputs()
         try:
             self.input.read_input_df(filename)
-            bad_file = self.input.check_input_df()
-            error_msg = None
-
-            if bad_file:
-                error_msg = "broken input file: main sheet has missing vars"
+            self.input.check_input_df()
 
             if len(self.input.input_df.columns) == 1:
-                error_msg = "more than 3 empty cells in all configurations"
-
-            if error_msg:
-                return error_msg
+                raise InputFileError("More than 3 empty cells in all configurations")
 
             self.input.load_gp_input("Stacker Crane (SC) And Rack Configuration")
 
@@ -42,30 +34,10 @@ class MainApplication():
             self.input.load_parameter_input("EN-13001-3-3")
 
             # load materials
-            wheel_error, rail_error = self.input.materials.read(filename, "rail_materials", "wheel_materials")
-
-            if wheel_error:
-                error_msg = "broken input file: wheel material sheet has missing vars"
-            if rail_error:
-                error_msg = "broken input file: rail material sheet has missing vars"
-            if wheel_error and rail_error:
-                error_msg = "broken input file: wheel and rail material sheets have missing vars"
-
-            if error_msg:
-                return error_msg
+            self.input.materials.read(filename, "rail_materials", "wheel_materials")
 
             # load geometries
-            wheel_error, rail_error = self.input.geometries.read(filename, "rail_geometries", "wheel_geometries")
-
-            if wheel_error:
-                error_msg = "broken input file: wheel geometry sheet has missing vars"
-            if rail_error:
-                error_msg = "broken input file: rail geometry sheet has missing vars"
-            if wheel_error and rail_error:
-                error_msg = "broken input file: wheel and rail geometry sheets have missing vars"
-
-            if error_msg:
-                return error_msg
+            self.input.geometries.read(filename, "rail_geometries", "wheel_geometries")
 
             # check materials and geometries
             self.input.geometry_and_material_error_check()
@@ -81,68 +53,117 @@ class MainApplication():
             self.input.drop_error_configs()
 
             if len(self.input.parameters.gen_params) == 0:
-                return "at least one error in all configurations"
+                raise InputFileError("At least one error in all configurations")
 
-            # precompute factors and set geometriy and material parameters
-            self.input.set_materials_and_geometry()
-            self.input.parameters.compute_f_f3()
-            self.input.parameters.compute_contact_and_f_1()
-            self.is_loaded["input_file"] = True
-            self.is_loaded["reload_file_config"] = True
+        except InputFileError as e:
+            raise e
 
-            return None
         except ValueError as e:
             if "Worksheet" in str(e):
-                return "broken input file: one or more required input sheets were missing. required sheets are: Input_variables, rail_materials, wheel_materials, wheel_geometries, rail_geometries"
-            return "unknown fatal error"
+                raise InputFileError("Broken input file: one or more required input sheets were missing. required sheets are: Input_variables, rail_materials, wheel_materials, wheel_geometries, rail_geometries") from e
+            raise InputFileError("Unknown fatal error with input file, please redownload") from e
+
         except Exception as e:
             if "sheet" in str(e):
-                return "broken input file: one or more required input sheets were missing. required sheets are: Input_variables, rail_materials, wheel_materials, wheel_geometries, rail_geometries"
-            return "unknown fatal error, please redownload input file"
+                raise InputFileError("Broken input file: one or more required input sheets were missing. required sheets are: Input_variables, rail_materials, wheel_materials, wheel_geometries, rail_geometries") from e
+            raise InputFileError("Unknown fatal error with input file, please redownload") from e
 
-    def run_computation_and_create_output(self, direction: int) -> None:
-        if self.is_loaded["reload_file_config"]:
-            self.num_run += 1
-            self.input.recompute_gp_data(self.input.config)
+    def prepare_gp_input(self):
+        self.input.recompute_gp_data(self.config)
 
-            # check gp input variables for values outside expected intervals
-            self.input.perform_gp_input_warning_check()
+        # check gp input variables for values outside expected intervals
+        self.input.perform_gp_input_warning_check()
 
-            self.prediction.clear_prediction_results()
-            self.prediction.predict_kc(self.input.gp_input.norm)
-            self.prediction.compute_F_sd_f_all(self.input.gp_input.raw, self.input.config, direction)
-            self.prediction.predict_travelled_dist(self.input.gp_input.raw["cycle_mode"], self.input.gp_input.raw["num_cycles_wheel"], self.input.gp_input.raw["r_l"])
+    def run_computation(self) -> None:
 
-            # create computation instance and compute configs
-            self.computation.load_data(self.input, self.prediction)
-            self.computation.compute_pre_F_rd_all()
-            self.computation.compute_F_rd_all()
-            self.computation.compute_proofs_all()
+        self.input.clear_computed_inputs()
+        self.input.set_materials_and_geometry()
+        self.input.parameters.compute_f_f3()
+        self.input.parameters.compute_contact_and_f_1()
 
-            # reults output
-            self.input.prepare_for_output()
-            self.computation.load_results_all()
+        self.prediction.clear_prediction_results()
+        self.prediction.predict_kc(self.input.gp_input.norm)
+        self.prediction.compute_F_sd_f_all(self.input.gp_input.raw, self.config, self.sc_direction)
+        self.prediction.predict_travelled_dist(self.input.gp_input.raw["cycle_mode"], self.input.gp_input.raw["num_cycles_wheel"], self.input.gp_input.raw["r_l"])
 
-            # pick a filename that doesn't exist yet
-            if not self.outname:
-                self.outname = self.input_file_path.parent.absolute() / f"output_no{self.num_run}.xlsx"
-            while self.outname.is_file():
-                self.num_run += 1
-                self.outname = self.input_file_path.parent.absolute() / f"output_no{self.num_run}.xlsx"
+        # create computation instance and compute configs
+        self.computation = Computation()
+        self.computation.load_data(self.input, self.prediction)
+        self.computation.compute_pre_F_rd_all()
+        self.computation.compute_F_rd_all()
+        self.computation.compute_proofs_all()
 
-            results_writer = ResultWriter(self.computation, self.input, self.outname)
-            results_writer.create_summary()
-            results_writer.write()
-            # create_output_file(self.computation, self.input, self.outname)
-            self.is_loaded["reload_file_config"] = None
+    def initialize_result_writer(self):
+        # pick a filename that doesn't exist yet
+        self.result_writer = ResultWriter(self.computation, self.input, self.outname)
+        self.result_writer.create_summary()
+
+    def computation_mode_1(self) -> None:
+        self.prepare_gp_input()
+        self.run_computation()
+
+        # reults output
+        self.input.prepare_for_output()
+        self.computation.load_results_all()
+
+        self.initialize_result_writer()
+        self.result_writer.write()
+        # create_output_file(self.computation, self.input, self.outname)
+
+    def computation_mode_2(self) -> None:
+        self.prepare_gp_input()
+        wheel_geometries = list(self.input.geometries.wheel.index)
+        proof_results = np.empty((len(wheel_geometries), len(self.input.parameters.gen_params)))
+
+        # sort wheel geometries by diameter
+        self.input.geometries.wheel.sort_values("D", inplace=True)
+        for idx, wheel_geometry in enumerate(wheel_geometries):
+            self.input.parameters.gen_params.loc[:, "wheel_geometry"] = wheel_geometry
+            self.run_computation()
+
+            # check if all proofs are fullfilled
+            proof_results[idx, :] = np.logical_and.reduce((
+                self.computation.wheel_f.proofs["static"], self.computation.wheel_f.proofs["fatigue"].loc[:, "preds"], 
+                self.computation.wheel_r.proofs["static"], self.computation.wheel_r.proofs["fatigue"].loc[:, "preds"],
+                self.computation.rail.proofs["static"], self.computation.rail.proofs["fatigue"].loc[:, "preds"]
+            ))
+        wheel_geometries_min_d = pd.Series(wheel_geometries)[proof_results.argmax(axis=0)]
+        wheel_geometries_min_d = pd.DataFrame(wheel_geometries_min_d, columns=["Min. Wheel Geometry"])
+        wheel_geometries_min_d.index = range(len(wheel_geometries_min_d))
+
+        self.input.parameters.gen_params.loc[:, "wheel_geometry"]  = list(wheel_geometries_min_d.to_numpy())
+        self.run_computation()
+
+        # drop wheel geometry from output params
+        # self.input.parameters.gen_params_out.drop(columns="wheel_geometry", inplace=True)
+
+        # reults output
+        self.input.prepare_for_output()
+        self.computation.load_results_all()
+
+        # add wheel geometry to output
+        self.computation.wheel_f.results["static"] = pd.concat(
+            [wheel_geometries_min_d, self.computation.wheel_f.results["static"]], axis=1
+        )
+        self.computation.wheel_r.results["static"] = pd.concat(
+            [wheel_geometries_min_d, self.computation.wheel_r.results["static"]], axis=1
+        )
+        self.initialize_result_writer()
+
+        # add wheel geometry to summary
+        self.result_writer.summary["wheel_f"] = pd.concat([wheel_geometries_min_d, self.result_writer.summary["wheel_f"].T], axis=1)
+        self.result_writer.summary["wheel_r"] = pd.concat([wheel_geometries_min_d, self.result_writer.summary["wheel_r"].T], axis=1)
+        self.result_writer.summary["wheel_f"] = self.result_writer.summary["wheel_f"].T
+        self.result_writer.summary["wheel_r"] = self.result_writer.summary["wheel_r"].T
+
+        self.result_writer.write()
+        # create_output_file(self.computation, self.input, self.outname)
 
     def init_gps(self) -> None:
         self.prediction = LoadCollectivePrediction()
         direction = 1
         gp_configs = {"m1": {1: "m1l", -1: "m1r"}, "m2": {1: "m2"}}
-        gp_config = gp_configs[self.input.config][direction]
+        gp_config = gp_configs[self.config][direction]
         parts = ["wf", "wr", "r"]
         # self.prediction.load_gps(gp_config)
         self.prediction.get_gps_kc(gp_config, parts)
-        self.is_loaded["config"] = True
-        self.is_loaded["reload_file_config"] = True
