@@ -2,15 +2,15 @@ import unittest
 import pathlib
 import numpy as np
 
-from marsDemonstrator.designMethods.en_13001_3_3 import EN_input
-from marsDemonstrator.designMethods.en_13001_3_3 import LoadCollectivePrediction
+from marsDemonstrator.designMethods.en_13001_3_3 import MARSInput # pylint: disable=import-error
+from marsDemonstrator.designMethods.en_13001_3_3 import LoadCollectivePrediction # pylint: disable=import-error
 
 
 class En_test(unittest.TestCase):
     def setUp(self):
         self.config = "m1"
         self.direction = 1
-        self.my_input = EN_input()
+        self.my_input = MARSInput()
         self.Predicted_data = LoadCollectivePrediction()
         parent_path = pathlib.Path(__file__).parent.parent.absolute()
         self.input_file = parent_path  / "testdata"  / "test_inputparameters_m1_l.xlsx"

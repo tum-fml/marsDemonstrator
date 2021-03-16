@@ -2,7 +2,7 @@ import unittest
 import pathlib
 import numpy as np
 
-from marsDemonstrator.designMethods.en_13001_3_3 import EN_input # pyling: disable=import-error
+from marsDemonstrator.designMethods.en_13001_3_3 import MARSInput # pylint: disable=import-error
 
 
 class En_test(unittest.TestCase):
@@ -12,7 +12,7 @@ class En_test(unittest.TestCase):
         self.direction = 1
         parent_path = pathlib.Path(__file__).parent.parent.absolute()
         input_file = parent_path  / "testdata"  / "test_geometry_material_input.xlsx"
-        self.my_input = EN_input()
+        self.my_input = MARSInput()
         self.my_input.load_material_input_check(input_file, "rail_materials", "wheel_materials")
         self.my_input.load_geometry_input_check(input_file, "rail_geometries", "wheel_geometries")
         self.my_input.read_input_df(input_file)

@@ -151,7 +151,7 @@ class StandardGeometries(RailWheelInput):
         self.rail = self.rail.loc[:, expected_vars_rail]
 
 
-class StandardInput():
+class EN13001Input():
     """Class that contains standard inputs for en computation.
 
     Attributes:

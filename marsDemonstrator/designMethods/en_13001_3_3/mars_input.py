@@ -7,13 +7,13 @@ import pandas as pd
 import numpy as np
 
 from .gp_input import GPInput
-from .parameter_input import StandardGeometries, StandardMaterials, StandardInput
+from .en_input import StandardGeometries, StandardMaterials, EN13001Input
 from .input_error_check import InputFileError
 
 mypath = pathlib.Path(__file__).parent.absolute()
 
 
-class EN_input(): # pylint: disable=too-many-instance-attributes
+class MARSInput(): # pylint: disable=too-many-instance-attributes
     """Class that contains all input classes.
 
     Attributes:
@@ -45,7 +45,7 @@ class EN_input(): # pylint: disable=too-many-instance-attributes
 
     def __init__(self) -> None:
         self.gp_input = GPInput()
-        self.parameters = StandardInput()
+        self.parameters = EN13001Input()
         self.materials = StandardMaterials()
         self.geometries = StandardGeometries()
         self.input_df: pd.DataFrame
@@ -74,7 +74,7 @@ class EN_input(): # pylint: disable=too-many-instance-attributes
 
         # reset
         self.gp_input = GPInput()
-        self.parameters = StandardInput()
+        self.parameters = EN13001Input()
         self.materials = StandardMaterials()
         self.geometries = StandardGeometries()
         self.output = pd.DataFrame()
