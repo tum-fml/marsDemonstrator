@@ -31,13 +31,17 @@ class LoadCollectivePrediction():
 
     def __init__(self) -> None:
         self.travelled_dist: np.array
-        self.load_collective = {part: {"k_c": pd.DataFrame(), "f_sd_f": None} 
+        self.load_collective = {part: {"k_c": pd.DataFrame(), "f_sd_f": None, "f_sd_s": None} 
                                 for part in ["wf", "wr", "r"]}
         self.gps: Dict[str, ExactGPModel]
 
     def clear_prediction_results(self) -> None:
-        self.load_collective = {part: {"k_c": pd.DataFrame(), "f_sd_f": None} 
+        self.load_collective = {part: {"k_c": pd.DataFrame(), "f_sd_f": None, "f_sd_s": None} 
                                 for part in ["wf", "wr", "r"]}
+
+    def load_f_sd_s(self, f_sd_s_w: pd.Series, f_sd_s_r: pd.Series) -> None:
+        for part in self.load_collective:
+            self.load_collective[part]["f_sd_s"] = f_sd_s_w if "w" in part else f_sd_s_r
 
     def predict_kc(self, input_data: torch.Tensor) -> None:
 
@@ -59,7 +63,7 @@ class LoadCollectivePrediction():
         """    
 
         # f_sd_f is parsed in kN --> convert to N
-        f_sd_f_new *= 1000
+        f_sd_f_new = f_sd_f_new.copy() * 1000
         # get idx of computation runs where user gave f_sd_f and get their f_sd_f   
         idx = idx = np.where(f_sd_f_new != 0)[0]
         f_sd_compute = self.load_collective[part]["f_sd_f"].copy()
@@ -149,8 +153,12 @@ class LoadCollectivePrediction():
                              - crane_configuration["l_m_t"] * a_x * pos_z
                              - crane_configuration["c_m"] * a_x * crane_configuration["c_lv_z"]))
 
-        f_wf = f_left_static + f_left_dynamic if crane_direction == -1 else f_right_static + f_right_dynamic
-        f_wr = f_right_static + f_right_dynamic if crane_direction == -1 else f_left_static + f_left_dynamic
+        if crane_direction == -1:
+            f_right_static, f_left_static = f_left_static, f_right_static
+            f_right_dynamic, f_left_dynamic = f_left_dynamic, f_right_dynamic
+
+        f_wf = f_right_static + f_right_dynamic
+        f_wr = f_left_static + f_left_dynamic
 
         return np.array(f_wf), np.array(f_wr)
 

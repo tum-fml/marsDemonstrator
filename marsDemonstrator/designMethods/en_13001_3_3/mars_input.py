@@ -32,9 +32,6 @@ class MARSInput(): # pylint: disable=too-many-instance-attributes
     output: Dict of DataFrames
         Output versions of gp_input.raw and parameters.gen_params_raw
 
-    config: str
-        Current configuration. Either "m1" or "m2".
-
     error_configs:
         Idx of faulty configurations
 
@@ -58,7 +55,7 @@ class MARSInput(): # pylint: disable=too-many-instance-attributes
 
     def check_input_df(self) -> None:
         # define list of expected input vars
-        expected_vars = ["wheel_geometry", "rail_geometry", "alpha", "f_2", "w", "f_f4", "material_wheel", "material_rail", "F_sd_f_w", "F_sd_f_r",
+        expected_vars = ["wheel_geometry", "rail_geometry", "alpha", "f_2", "w", "f_f4", "material_wheel", "material_rail", "F_sd_f_w", "F_sd_f_r", "F_sd_s_w", "F_sd_s_r",
                          "num_cycles_wheel", "num_cycles_rail", "cycle_mode", "c_h", "c_cg_z", "m_m_h", "m_cg_x", "m_m_a", "t_wd", "t_cg_x", "t_m_l", "t_m_a", "w_a",
                          "w_s", "w_v", "l_cg_x", "l_m", "l_m_ld", "l_a", "r_l"]
 

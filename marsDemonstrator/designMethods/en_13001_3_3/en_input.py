@@ -312,15 +312,18 @@ class EN13001Input():
             r_k
             f_1
         """
-        # coerce w to numbers
-        self.gen_params.loc[:, "w"] = pd.to_numeric(self.gen_params["w"])
 
         # get b_min from wheel an rail b
         b = np.vstack((self.geometries["wheel"]["b"], self.geometries["rail"]["b"]))
         self.gen_params["b_min"] = np.min(b, axis=0)
 
         # compute w 
-        # self.gen_params.loc[:, "w"] = (abs(self.geometries["wheel"]["b"] - self.geometries["rail"]["b"])) / 2
+        computed_w = (abs(self.geometries["wheel"]["b"] - self.geometries["rail"]["b"])) / 2
+        cond = (self.gen_params["w"] == 0)
+        self.gen_params.loc[cond, "w"][cond] = computed_w[cond]
+
+        # coerce w to numbers
+        self.gen_params.loc[:, "w"] = pd.to_numeric(self.gen_params["w"])
 
         # find r_k --> either wheel or rail r_k should be zero
         r_k = np.vstack((self.geometries["wheel"]["r_k"], self.geometries["rail"]["r_k"]))
