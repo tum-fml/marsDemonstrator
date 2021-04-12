@@ -82,6 +82,9 @@ class MainApplication():
         self.input.parameters.compute_contact_and_f_1()
 
         self.prediction.clear_prediction_results()
+        # assign f_sd_s
+        self.prediction.load_f_sd_s(self.input.parameters.gen_params["F_sd_s_w"], self.input.parameters.gen_params["F_sd_s_r"])
+
         self.prediction.predict_kc(self.input.gp_input.norm)
         self.prediction.compute_F_sd_f_all(self.input.gp_input.raw, self.config, self.sc_direction)
         self.prediction.predict_travelled_dist(self.input.gp_input.raw["cycle_mode"], self.input.gp_input.raw["num_cycles_wheel"], self.input.gp_input.raw["r_l"])

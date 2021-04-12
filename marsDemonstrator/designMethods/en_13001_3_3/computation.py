@@ -132,7 +132,7 @@ class Part(): # pylint: disable=too-many-instance-attributes
         Results of static and fatigue proof
 
     load_collective: Dict of DataFrames
-        Contains k_c (pred and upper confidence) and f_sd_f
+        Contains k_c (pred and upper confidence), f_sd_f and f_sd_f
 
     z:
         Computed z
@@ -157,7 +157,8 @@ class Part(): # pylint: disable=too-many-instance-attributes
         self.F_rd: Dict[str, Union[pd.Series, pd.DataFrame]] = {"F_rd_s": pd.Series(), "F_rd_f": pd.DataFrame(), "F_u": pd.Series()}
 
         # parse F_sd for static and fatigue proof
-        self.F_sd = pd.to_numeric(predicted_data.load_collective[part]["f_sd_f"])
+        self.F_sd_f = pd.to_numeric(predicted_data.load_collective[part]["f_sd_f"])
+        self.F_sd_s = pd.to_numeric(predicted_data.load_collective[part]["f_sd_s"])
 
         # dictionary for proor results
         self.proofs: Dict[str, Union[pd.Series, pd.DataFrame]] = {"static": pd.Series(), "fatigue": pd.DataFrame()}
@@ -180,13 +181,13 @@ class Part(): # pylint: disable=too-many-instance-attributes
 
     def compute_z_ml(self, design_param: pd.DataFrame, D_w: pd.Series, idx: np.array) -> pd.Series:
 
-        z_ml = (0.5 * (self.F_sd[idx] * math.pi * D_w[idx] * (1 - self.material["v"][idx] ** 2)
+        z_ml = (0.5 * (self.F_sd_f[idx] * math.pi * D_w[idx] * (1 - self.material["v"][idx] ** 2)
                        / (design_param["b"][idx] * design_param["E_m"][idx]))
                 ** (1/2))
         return z_ml
 
     def compute_z_mp(self, design_param: pd.DataFrame, D_w: pd.Series, idx: np.array) -> pd.Series:
-        z_mp = (0.68 * (self.F_sd[idx] / design_param["E_m"][idx]
+        z_mp = (0.68 * (self.F_sd_f[idx] / design_param["E_m"][idx]
                         * ((1 - self.material["v"][idx] ** 2) 
                            / (2 / D_w[idx] + 1 / design_param["r_k"][idx]))) 
                 ** (1/3))
@@ -237,19 +238,19 @@ class Part(): # pylint: disable=too-many-instance-attributes
                                         / (coefficients.Y_cf * (self.load_collective["s_c"]["upper"] ** (1/coefficients.m))))
 
     def compute_proofs(self):
-        self.proofs["static"] = self.F_sd <= self.F_rd["F_rd_s"]
-        self.proofs["fatigue"]["preds"] = self.F_sd <= self.F_rd["F_rd_f"]["preds"]
-        self.proofs["fatigue"]["upper"] = self.F_sd <= self.F_rd["F_rd_f"]["upper"]
+        self.proofs["static"] = self.F_sd_s <= self.F_rd["F_rd_s"]
+        self.proofs["fatigue"]["preds"] = self.F_sd_f <= self.F_rd["F_rd_f"]["preds"]
+        self.proofs["fatigue"]["upper"] = self.F_sd_f <= self.F_rd["F_rd_f"]["upper"]
 
     def load_results(self):
         self.results["static"] = pd.DataFrame({
-            "Design-Contact-Force-F_sd_s [kN]": self.F_sd / 1000,
+            "Design-Contact-Force-F_sd_s [kN]": self.F_sd_s / 1000,
             "Limit-Design-Contact-Force-Static-F_rd_s [kN]": self.F_rd["F_rd_s"] / 1000,
             "Condition-Fullfilled": self.proofs["static"]
         })
 
         self.results["fatigue"] = pd.DataFrame({
-            "Deisgn-Contact-Force-F_sd_f [kN]": self.F_sd / 1000,
+            "Deisgn-Contact-Force-F_sd_f [kN]": self.F_sd_f / 1000,
             "Reference-Contact-Force-F_u [kN]": self.F_rd["F_u"] / 1000,
             "Relative-Total-Number-of-Rolling-Contacts-v_c": self.load_collective["v_c"],
             "Contact-Force-Spectrum-Factor-k_c-Prediction": self.load_collective["k_c"]["preds"],
