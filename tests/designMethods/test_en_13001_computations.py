@@ -72,12 +72,12 @@ class En_test(unittest.TestCase):
         if any(self.my_input.parameters.gen_params["F_sd_f_r"] > 0):
             self.predicted_data.recompute_kc(self.my_input.parameters.gen_params["F_sd_f_r"], "r")
 
-        np.testing.assert_almost_equal(list(self.expected_results["k_c_rail_preds_new"]), list(self.predicted_data.load_collective["r"]["k_c"]["preds"]))
-        np.testing.assert_almost_equal(list(self.expected_results["k_c_rail_upper_new"]), list(self.predicted_data.load_collective["r"]["k_c"]["upper"]))
-        np.testing.assert_almost_equal(list(self.expected_results["k_c_wf_preds_new"]), list(self.predicted_data.load_collective["wf"]["k_c"]["preds"]))
-        np.testing.assert_almost_equal(list(self.expected_results["k_c_wf_upper_new"]), list(self.predicted_data.load_collective["wf"]["k_c"]["upper"]))
-        np.testing.assert_almost_equal(list(self.expected_results["k_c_wr_preds_new"]), list(self.predicted_data.load_collective["wr"]["k_c"]["preds"]))
-        np.testing.assert_almost_equal(list(self.expected_results["k_c_wr_upper_new"]), list(self.predicted_data.load_collective["wr"]["k_c"]["upper"]))
+        np.testing.assert_almost_equal(list(self.expected_results["k_c_rail_preds_expected"]), list(self.predicted_data.load_collective["r"]["k_c"]["preds"] * 1e6))
+        np.testing.assert_almost_equal(list(self.expected_results["k_c_rail_upper_expected"]), list(self.predicted_data.load_collective["r"]["k_c"]["upper"] * 1e6))
+        np.testing.assert_almost_equal(list(self.expected_results["k_c_wf_preds_expected"]), list(self.predicted_data.load_collective["wf"]["k_c"]["preds"] * 1e6))
+        np.testing.assert_almost_equal(list(self.expected_results["k_c_wf_upper_expected"]), list(self.predicted_data.load_collective["wf"]["k_c"]["upper"] * 1e6))
+        np.testing.assert_almost_equal(list(self.expected_results["k_c_wr_preds_expected"]), list(self.predicted_data.load_collective["wr"]["k_c"]["preds"] * 1e6))
+        np.testing.assert_almost_equal(list(self.expected_results["k_c_wr_upper_expected"]), list(self.predicted_data.load_collective["wr"]["k_c"]["upper"] * 1e6))
 
     def test_computed_proofs(self):
         self.predicted_data.predict_travelled_dist(self.my_input.gp_input.raw["cycle_mode"], self.my_input.gp_input.raw["num_cycles_wheel"], self.my_input.gp_input.raw["r_l"])
