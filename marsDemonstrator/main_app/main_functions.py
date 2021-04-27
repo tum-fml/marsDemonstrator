@@ -115,11 +115,12 @@ class MainApplication():
 
     def computation_mode_2(self) -> None:
         self.prepare_gp_input()
-        wheel_geometries = list(self.input.geometries.wheel.index)
-        proof_results = np.empty((len(wheel_geometries), len(self.input.parameters.gen_params)))
 
         # sort wheel geometries by diameter
         self.input.geometries.wheel.sort_values("D", inplace=True)
+        wheel_geometries = list(self.input.geometries.wheel.index)
+
+        proof_results = np.empty((len(wheel_geometries), len(self.input.parameters.gen_params)))
         for idx, wheel_geometry in enumerate(wheel_geometries):
             self.input.parameters.gen_params.loc[:, "wheel_geometry"] = wheel_geometry
             self.run_computation()
@@ -134,8 +135,11 @@ class MainApplication():
         wheel_geometries_min_d = pd.DataFrame(wheel_geometries_min_d, columns=["Min. Wheel Geometry"])
         wheel_geometries_min_d.index = range(len(wheel_geometries_min_d))
 
+        wheel_geometries_min_d[proof_results.sum(axis=0) < 1] = wheel_geometries[-1]
         self.input.parameters.gen_params.loc[:, "wheel_geometry"]  = list(wheel_geometries_min_d.to_numpy())
         self.run_computation()
+
+        wheel_geometries_min_d[proof_results.sum(axis=0) < 1] = "NaN"
 
         # drop wheel geometry from output params
         # self.input.parameters.gen_params_out.drop(columns="wheel_geometry", inplace=True)
@@ -164,9 +168,8 @@ class MainApplication():
 
     def init_gps(self) -> None:
         self.prediction = LoadCollectivePrediction()
-        direction = 1
         gp_configs = {"m1": {1: "m1l", -1: "m1r"}, "m2": {1: "m2"}}
-        gp_config = gp_configs[self.config][direction]
+        gp_config = gp_configs[self.config][self.sc_direction]
         parts = ["wf", "wr", "r"]
         # self.prediction.load_gps(gp_config)
         self.prediction.get_gps_kc(gp_config, parts)
