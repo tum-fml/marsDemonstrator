@@ -165,26 +165,27 @@ class LoadCollectivePrediction():
     def get_gps_kc(self, config: str, parts: List[str]) -> None:
 
         def init_gp(part: str) -> ExactGPModel:
-            gp_cur = ExactGPModel(data["X"].float(), data[part].float(), gp.likelihoods.GaussianLikelihood().float(), 
+            x = learner_cur[part]["model_data"][:, :-1].float()
+            y = learner_cur[part]["model_data"][:, -1].float()
+            gp_cur = ExactGPModel(x, y, gp.likelihoods.GaussianLikelihood().float(), 
                                   gp.kernels.MaternKernel(ard_num_dims=17).float(), gp.means.ZeroMean().float())
             gp_cur.float()
             gp_cur.train()
-            for field in model_parameters_cur[part]["state_dict"]:
-                model_parameters_cur[part]["state_dict"][field].float()
-            gp_cur.load_state_dict(model_parameters_cur[part]["state_dict"])
+            for field in learner_cur[part]["state_dict"]:
+                learner_cur[part]["state_dict"][field].float()
+            gp_cur.load_state_dict(learner_cur[part]["state_dict"])
             gp_cur.covar_module.float()
             gp_cur.eval()
-            gp_cur.load_cache(model_parameters_cur[part]["pred_dict"], data["X"].float())
+            gp_cur.load_cache(learner_cur[part]["pred_strat"], x)
             gp_cur.float()
             gp_cur.prediction_strategy.mean_cache.data = gp_cur.prediction_strategy.mean_cache.data.float()
             gp_cur.prediction_strategy.covar_cache.data = gp_cur.prediction_strategy.covar_cache.data.float()
             return gp_cur
 
+
         # init gps
-        model_parameters = joblib.load(mypath / "model_parameters.pkl")
-        data = joblib.load(mypath / "model_data.pkl")
-        data = data[config]
-        model_parameters_cur = model_parameters[config]
+        learners = joblib.load(mypath / "learners.pkl")
+        learner_cur = learners[config]
 
         self.gps = {part: init_gp(part) for part in parts}
 
@@ -199,16 +200,18 @@ class LoadCollectivePrediction():
 def load_all_gps():
 
     def init_gp(part: str) -> ExactGPModel:
-        gp_cur = ExactGPModel(data["X"].float(), data[part].float(), gp.likelihoods.GaussianLikelihood().float(), 
+        x = learner_cur[part]["model_data"][:, :-1].float()
+        y = learner_cur[part]["model_data"][:, -1].float()
+        gp_cur = ExactGPModel(x, y, gp.likelihoods.GaussianLikelihood().float(), 
                               gp.kernels.MaternKernel(ard_num_dims=17).float(), gp.means.ZeroMean().float())
         gp_cur.float()
         gp_cur.train()
-        for field in model_parameters_cur[part]["state_dict"]:
-            model_parameters_cur[part]["state_dict"][field].float()
-        gp_cur.load_state_dict(model_parameters_cur[part]["state_dict"])
+        for field in learner_cur[part]["state_dict"]:
+            learner_cur[part]["state_dict"][field].float()
+        gp_cur.load_state_dict(learner_cur[part]["state_dict"])
         gp_cur.covar_module.float()
         gp_cur.eval()
-        gp_cur.load_cache(model_parameters_cur[part]["pred_dict"], data["X"].float())
+        gp_cur.load_cache(learner_cur[part]["pred_strat"], x.float())
         gp_cur.float()
         gp_cur.prediction_strategy.mean_cache.data = gp_cur.prediction_strategy.mean_cache.data.float()
         gp_cur.prediction_strategy.covar_cache.data = gp_cur.prediction_strategy.covar_cache.data.float()
@@ -217,14 +220,11 @@ def load_all_gps():
     configs = ["m1r", "m1l", "m2"]
     parts = ["wf", "wr", "r"]
     gps_all = {}
-
+    # init gps new
+    learners = joblib.load(mypath / "learners.pkl")
+    
     for config in configs:
-
-        model_parameters = joblib.load(mypath / "model_parameters.pkl")
-        data = joblib.load(mypath / "model_data.pkl")
-        data = data[config]
-        model_parameters_cur = model_parameters[config]
-
+        learner_cur = learners[config]
         gps_all[config] = {part: init_gp(part) for part in parts}
 
     return gps_all

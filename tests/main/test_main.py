@@ -18,7 +18,7 @@ main_application.read_input_file(main_application.input_file_path)
 main_application.output_file_path = pathlib.Path.cwd().parent / "test_output" / "result.xlsx"
 
 # set configuration ["m1", "m2"]
-main_application.config = "m1l"
+main_application.config = "m1r"
 
 main_application.sc_direction = 1
 if "m1" in main_application.config:
