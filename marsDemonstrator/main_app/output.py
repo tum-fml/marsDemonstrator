@@ -175,10 +175,10 @@ class ResultWriter():
                 self.sheets["summary"].set_row(i, 27)
 
             # set column widths
-            self.sheets["results"].set_column(2, 2, 60, self.formats["variable_column"])
-            self.sheets["summary"].set_column(2, 2, 60, self.formats["variable_column"])
-            self.sheets["results"].set_column(3, (num_computations + 3), 18, self.formats["all"])
-            self.sheets["summary"].set_column(3, (num_computations + 3), 18, self.formats["all"])
+            self.sheets["results"].set_column(2, 2, 70, self.formats["variable_column"])
+            self.sheets["summary"].set_column(2, 2, 70, self.formats["variable_column"])
+            self.sheets["results"].set_column(3, (num_computations + 3), 25, self.formats["all"])
+            self.sheets["summary"].set_column(3, (num_computations + 3), 25, self.formats["all"])
 
             # set start row for first and second level for summary and results sheets
             start_rows = {
