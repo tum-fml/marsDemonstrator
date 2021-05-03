@@ -182,7 +182,6 @@ class LoadCollectivePrediction():
             gp_cur.prediction_strategy.covar_cache.data = gp_cur.prediction_strategy.covar_cache.data.float()
             return gp_cur
 
-
         # init gps
         learners = joblib.load(mypath / "learners.pkl")
         learner_cur = learners[config]
@@ -222,7 +221,7 @@ def load_all_gps():
     gps_all = {}
     # init gps new
     learners = joblib.load(mypath / "learners.pkl")
-    
+
     for config in configs:
         learner_cur = learners[config]
         gps_all[config] = {part: init_gp(part) for part in parts}
