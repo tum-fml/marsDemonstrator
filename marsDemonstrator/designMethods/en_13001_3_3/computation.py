@@ -250,7 +250,7 @@ class Part(): # pylint: disable=too-many-instance-attributes
         })
 
         self.results["fatigue"] = pd.DataFrame({
-            "Deisgn-Contact-Force-F_sd_f [kN]": self.F_sd_f / 1000,
+            "Design-Contact-Force-F_sd_f [kN]": self.F_sd_f / 1000,
             "Reference-Contact-Force-F_u [kN]": self.F_rd["F_u"] / 1000,
             "Relative-Total-Number-of-Rolling-Contacts-v_c": self.load_collective["v_c"],
             "Contact-Force-Spectrum-Factor-k_c-Prediction": self.load_collective["k_c"]["preds"],
