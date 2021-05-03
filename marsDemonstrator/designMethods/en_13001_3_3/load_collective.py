@@ -88,9 +88,9 @@ class LoadCollectivePrediction():
         cycle_mode[cycle_mode > 2] = 4
 
         # compute travelled dist based on cycle mode number of cylces for wheels and rack length
-        mean_travelled_dist = np.ones(len(cycle_mode)) * 0.3
-        mean_travelled_dist[np.where(cycle_mode == 1)[0]] = 0.4
-        mean_travelled_dist[np.where(cycle_mode == 2)[0]] = 0.5
+        mean_travelled_dist = np.ones(len(cycle_mode)) * 1.999256990140186
+        mean_travelled_dist[np.where(cycle_mode == 1)[0]] = 1.013992033037036
+        mean_travelled_dist[np.where(cycle_mode == 2)[0]] = 1.342292705615315
         self.travelled_dist = num_cycles * rack_length * mean_travelled_dist
 
     def compute_F_sd_f_all(self, input_data: pd.DataFrame, config: str, crane_direction: int) -> None:
