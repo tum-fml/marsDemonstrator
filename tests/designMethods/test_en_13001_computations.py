@@ -1,6 +1,7 @@
 import unittest
 import pathlib
 import numpy as np
+import pandas as pd
 
 from marsDemonstrator.designMethods.en_13001_3_3 import MARSInput # pylint: disable=import-error
 from marsDemonstrator.designMethods.en_13001_3_3 import LoadCollectivePrediction # pylint: disable=import-error
@@ -140,9 +141,25 @@ class En_test(unittest.TestCase):
         self.en_computation.wheel_f.F_rd["F_u"] = self.f_rd["F_u_w"]
         self.en_computation.wheel_f.F_rd["F_u"] = self.f_rd["F_u_w"]
 
+        self.en_computation.rail.load_collective["v_c"] = self.f_rd["v_c_rail"]
+        self.en_computation.wheel_f.load_collective["v_c"] = self.f_rd["v_c_wheel"]
+        self.en_computation.wheel_r.load_collective["v_c"] = self.f_rd["v_c_wheel"]
+
         self.en_computation.rail.factors["f_ff"] = self.f_rd["f_ff_rail"]
         self.en_computation.wheel_f.factors["f_ff"] = self.f_rd["f_ff_wheel"]
         self.en_computation.wheel_r.factors["f_ff"] = self.f_rd["f_ff_wheel"]
+
+        self.en_computation.wheel_f.load_collective["s_c"] = pd.DataFrame()
+        self.en_computation.wheel_f.load_collective["s_c"]["preds"] = self.en_computation.wheel_f.load_collective["k_c"]["preds"] * self.en_computation.wheel_f.load_collective["v_c"]
+        self.en_computation.wheel_f.load_collective["s_c"]["upper"] = self.en_computation.wheel_f.load_collective["k_c"]["upper"] * self.en_computation.wheel_f.load_collective["v_c"]
+
+        self.en_computation.wheel_r.load_collective["s_c"] = pd.DataFrame()
+        self.en_computation.wheel_r.load_collective["s_c"]["preds"] = self.en_computation.wheel_r.load_collective["k_c"]["preds"] * self.en_computation.wheel_r.load_collective["v_c"]
+        self.en_computation.wheel_r.load_collective["s_c"]["upper"] = self.en_computation.wheel_r.load_collective["k_c"]["upper"] * self.en_computation.wheel_r.load_collective["v_c"]
+
+        self.en_computation.rail.load_collective["s_c"] = pd.DataFrame()
+        self.en_computation.rail.load_collective["s_c"]["preds"] = self.en_computation.rail.load_collective["k_c"]["preds"] * self.en_computation.rail.load_collective["v_c"]
+        self.en_computation.rail.load_collective["s_c"]["upper"] = self.en_computation.rail.load_collective["k_c"]["upper"] * self.en_computation.rail.load_collective["v_c"]
 
     def load_design_param(self):
         self.en_computation.des_params = self.design_params
