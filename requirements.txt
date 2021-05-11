@@ -1,0 +1,7 @@
+numpy>=1.16
+pandas
+joblib>=0.17.0
+gpytorch>=1.2.0
+xlrd==1.2.0
+xlsxwriter
+openpyxl
