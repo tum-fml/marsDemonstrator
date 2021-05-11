@@ -65,7 +65,7 @@ class LoadCollectivePrediction():
         # f_sd_f is parsed in kN --> convert to N
         f_sd_f_new = f_sd_f_new.copy() * 1000
         # get idx of computation runs where user gave f_sd_f and get their f_sd_f   
-        idx = idx = np.where(f_sd_f_new != 0)[0]
+        idx = np.where(f_sd_f_new != 0)[0]
         f_sd_compute = self.load_collective[part]["f_sd_f"].copy()
         f_sd_compute[idx] = f_sd_f_new[idx]
 

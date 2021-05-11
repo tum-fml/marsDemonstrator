@@ -87,6 +87,10 @@ class MainApplication():
 
         self.prediction.predict_kc(self.input.gp_input.norm)
         self.prediction.compute_F_sd_f_all(self.input.gp_input.raw, self.config, self.sc_direction)
+
+        self.prediction.recompute_kc(self.input.parameters.gen_params["F_sd_f_w"], "wf")
+        self.prediction.recompute_kc(self.input.parameters.gen_params["F_sd_f_w"], "wr")
+        self.prediction.recompute_kc(self.input.parameters.gen_params["F_sd_f_r"], "r")
         self.prediction.predict_travelled_dist(self.input.gp_input.raw["cycle_mode"], self.input.gp_input.raw["num_cycles_wheel"], self.input.gp_input.raw["r_l"])
 
         # create computation instance and compute configs
