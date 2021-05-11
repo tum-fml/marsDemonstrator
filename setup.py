@@ -1,9 +1,10 @@
 # python setup.py develop
 from setuptools import setup
+import setuptools
 
 
 CLASSIFIERS = '''\
-License :: CC0-1.0 License
+License :: CC0 1.0 Universal (CC0 1.0) Public Domain Dedication
 Programming Language :: Python :: 3.7
 Topic :: Design Methods
 Operating System :: Microsoft :: Windows
@@ -18,7 +19,7 @@ AUTHOR_EMAIL = 'mathias.laile@tum.de'
 DESCRIPTION = 'This package contains the demonstrator for the project mars.'
 README = 'This package contains the demonstrator for the project mars.'
 
-VERSION = '0.1.0'
+VERSION = '0.1.2'
 ISRELEASED = True
 
 PYTHON_MIN_VERSION = '3.6'
@@ -35,12 +36,14 @@ INSTALL_REQUIRES = [
     'openpyxl',
 ]
 
-PACKAGES = [
-    'marsDemonstrator',
-    'tests'
-]
+# PACKAGES = [
+#     'marsDemonstrator',
+# ]
+
+PACKAGES = setuptools.find_packages()
 
 metadata = dict(
+    include_package_data=True,
     name=DISTNAME,
     version=VERSION,
     long_description=README,
