@@ -31,13 +31,17 @@ class LoadCollectivePrediction():
 
     def __init__(self) -> None:
         self.travelled_dist: np.array
-        self.load_collective = {part: {"k_c": pd.DataFrame(), "f_sd_f": None} 
+        self.load_collective = {part: {"k_c": pd.DataFrame(), "f_sd_f": None, "f_sd_s": None} 
                                 for part in ["wf", "wr", "r"]}
         self.gps: Dict[str, ExactGPModel]
 
     def clear_prediction_results(self) -> None:
-        self.load_collective = {part: {"k_c": pd.DataFrame(), "f_sd_f": None} 
+        self.load_collective = {part: {"k_c": pd.DataFrame(), "f_sd_f": None, "f_sd_s": None} 
                                 for part in ["wf", "wr", "r"]}
+
+    def load_f_sd_s(self, f_sd_s_w: pd.Series, f_sd_s_r: pd.Series) -> None:
+        for part in self.load_collective:
+            self.load_collective[part]["f_sd_s"] = (f_sd_s_w * 1000) if "w" in part else (f_sd_s_r * 1000)
 
     def predict_kc(self, input_data: torch.Tensor) -> None:
 
@@ -59,7 +63,7 @@ class LoadCollectivePrediction():
         """    
 
         # f_sd_f is parsed in kN --> convert to N
-        f_sd_f_new *= 1000
+        f_sd_f_new = f_sd_f_new.copy() * 1000
         # get idx of computation runs where user gave f_sd_f and get their f_sd_f   
         idx = idx = np.where(f_sd_f_new != 0)[0]
         f_sd_compute = self.load_collective[part]["f_sd_f"].copy()
@@ -76,17 +80,17 @@ class LoadCollectivePrediction():
     def predict_travelled_dist(self, cycle_mode: pd.Series, num_cycles: pd.Series, rack_length: pd.Series) -> None:
 
         # set cycle mode to 1, 2, or 4 in case of bad input
-        num_cycles = num_cycles.to_numpy().astype(int)
+        num_cycles = num_cycles.to_numpy()
         cycle_mode = cycle_mode.to_numpy().astype(int)
-        rack_length = rack_length.to_numpy().astype(int)
+        rack_length = rack_length.to_numpy()
         cycle_mode[cycle_mode <= 1] = 1
         cycle_mode[np.logical_and(cycle_mode > 1, cycle_mode <= 2)] = 2
         cycle_mode[cycle_mode > 2] = 4
 
         # compute travelled dist based on cycle mode number of cylces for wheels and rack length
-        mean_travelled_dist = np.ones(len(cycle_mode)) * 0.3
-        mean_travelled_dist[np.where(cycle_mode == 1)[0]] = 0.4
-        mean_travelled_dist[np.where(cycle_mode == 2)[0]] = 0.5
+        mean_travelled_dist = np.ones(len(cycle_mode)) * 1.999256990140186
+        mean_travelled_dist[np.where(cycle_mode == 1)[0]] = 1.013992033037036
+        mean_travelled_dist[np.where(cycle_mode == 2)[0]] = 1.342292705615315
         self.travelled_dist = num_cycles * rack_length * mean_travelled_dist
 
     def compute_F_sd_f_all(self, input_data: pd.DataFrame, config: str, crane_direction: int) -> None:
@@ -149,34 +153,38 @@ class LoadCollectivePrediction():
                              - crane_configuration["l_m_t"] * a_x * pos_z
                              - crane_configuration["c_m"] * a_x * crane_configuration["c_lv_z"]))
 
-        f_wf = f_left_static + f_left_dynamic if crane_direction == -1 else f_right_static + f_right_dynamic
-        f_wr = f_right_static + f_right_dynamic if crane_direction == -1 else f_left_static + f_left_dynamic
+        if crane_direction == -1:
+            f_right_static, f_left_static = f_left_static, f_right_static
+            f_right_dynamic, f_left_dynamic = f_left_dynamic, f_right_dynamic
+
+        f_wf = f_right_static + f_right_dynamic
+        f_wr = f_left_static + f_left_dynamic
 
         return np.array(f_wf), np.array(f_wr)
 
     def get_gps_kc(self, config: str, parts: List[str]) -> None:
 
         def init_gp(part: str) -> ExactGPModel:
-            gp_cur = ExactGPModel(data["X"].float(), data[part].float(), gp.likelihoods.GaussianLikelihood().float(), 
+            x = learner_cur[part]["model_data"][:, :-1].float()
+            y = learner_cur[part]["model_data"][:, -1].float()
+            gp_cur = ExactGPModel(x, y, gp.likelihoods.GaussianLikelihood().float(), 
                                   gp.kernels.MaternKernel(ard_num_dims=17).float(), gp.means.ZeroMean().float())
             gp_cur.float()
             gp_cur.train()
-            for field in model_parameters_cur[part]["state_dict"]:
-                model_parameters_cur[part]["state_dict"][field].float()
-            gp_cur.load_state_dict(model_parameters_cur[part]["state_dict"])
+            for field in learner_cur[part]["state_dict"]:
+                learner_cur[part]["state_dict"][field].float()
+            gp_cur.load_state_dict(learner_cur[part]["state_dict"])
             gp_cur.covar_module.float()
             gp_cur.eval()
-            gp_cur.load_cache(model_parameters_cur[part]["pred_dict"], data["X"].float())
+            gp_cur.load_cache(learner_cur[part]["pred_strat"], x)
             gp_cur.float()
             gp_cur.prediction_strategy.mean_cache.data = gp_cur.prediction_strategy.mean_cache.data.float()
             gp_cur.prediction_strategy.covar_cache.data = gp_cur.prediction_strategy.covar_cache.data.float()
             return gp_cur
 
         # init gps
-        model_parameters = joblib.load(mypath / "model_parameters.pkl")
-        data = joblib.load(mypath / "model_data.pkl")
-        data = data[config]
-        model_parameters_cur = model_parameters[config]
+        learners = joblib.load(mypath / "learners.pkl")
+        learner_cur = learners[config]
 
         self.gps = {part: init_gp(part) for part in parts}
 
@@ -191,16 +199,18 @@ class LoadCollectivePrediction():
 def load_all_gps():
 
     def init_gp(part: str) -> ExactGPModel:
-        gp_cur = ExactGPModel(data["X"].float(), data[part].float(), gp.likelihoods.GaussianLikelihood().float(), 
+        x = learner_cur[part]["model_data"][:, :-1].float()
+        y = learner_cur[part]["model_data"][:, -1].float()
+        gp_cur = ExactGPModel(x, y, gp.likelihoods.GaussianLikelihood().float(), 
                               gp.kernels.MaternKernel(ard_num_dims=17).float(), gp.means.ZeroMean().float())
         gp_cur.float()
         gp_cur.train()
-        for field in model_parameters_cur[part]["state_dict"]:
-            model_parameters_cur[part]["state_dict"][field].float()
-        gp_cur.load_state_dict(model_parameters_cur[part]["state_dict"])
+        for field in learner_cur[part]["state_dict"]:
+            learner_cur[part]["state_dict"][field].float()
+        gp_cur.load_state_dict(learner_cur[part]["state_dict"])
         gp_cur.covar_module.float()
         gp_cur.eval()
-        gp_cur.load_cache(model_parameters_cur[part]["pred_dict"], data["X"].float())
+        gp_cur.load_cache(learner_cur[part]["pred_strat"], x.float())
         gp_cur.float()
         gp_cur.prediction_strategy.mean_cache.data = gp_cur.prediction_strategy.mean_cache.data.float()
         gp_cur.prediction_strategy.covar_cache.data = gp_cur.prediction_strategy.covar_cache.data.float()
@@ -209,14 +219,11 @@ def load_all_gps():
     configs = ["m1r", "m1l", "m2"]
     parts = ["wf", "wr", "r"]
     gps_all = {}
+    # init gps new
+    learners = joblib.load(mypath / "learners.pkl")
 
     for config in configs:
-
-        model_parameters = joblib.load(mypath / "model_parameters.pkl")
-        data = joblib.load(mypath / "model_data.pkl")
-        data = data[config]
-        model_parameters_cur = model_parameters[config]
-
+        learner_cur = learners[config]
         gps_all[config] = {part: init_gp(part) for part in parts}
 
     return gps_all

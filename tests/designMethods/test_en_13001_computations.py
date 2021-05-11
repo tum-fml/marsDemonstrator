@@ -1,20 +1,21 @@
 import unittest
 import pathlib
 import numpy as np
+import pandas as pd
 
-from marsDemonstrator.designMethods.en_13001_3_3 import EN_input
-from marsDemonstrator.designMethods.en_13001_3_3 import LoadCollectivePrediction
-from marsDemonstrator.designMethods.en_13001_3_3 import Computation
+from marsDemonstrator.designMethods.en_13001_3_3 import MARSInput # pylint: disable=import-error
+from marsDemonstrator.designMethods.en_13001_3_3 import LoadCollectivePrediction # pylint: disable=import-error
+from marsDemonstrator.designMethods.en_13001_3_3 import ENComputation # pylint: disable=import-error
 
 
 class En_test(unittest.TestCase):
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.config = "m1"
         self.direction = 1
         parent_path = pathlib.Path(__file__).parent.parent.absolute()
-        input_file = parent_path  / "testdata"  / "test_geometry_computation.xlsx"
-        self.my_input = EN_input()
+        input_file = parent_path  / "testdata"  / "test_computation.xlsx"
+        self.my_input = MARSInput()
         self.my_input.load_material_input_check(input_file, "rail_materials", "wheel_materials")
         self.my_input.load_geometry_input_check(input_file, "rail_geometries", "wheel_geometries")
         self.my_input.read_input_df(input_file)
@@ -57,7 +58,7 @@ class En_test(unittest.TestCase):
 
         self.en_computation = None
 
-    def test_repredicted_data(self):
+    def test_repredicted_data(self) -> None:
         # self.predicted_data.predict_kc(self.my_input.gp_input.norm)
         self.predicted_data.compute_F_sd_f_all(self.my_input.gp_input.raw, self.config, self.direction)
         np.testing.assert_almost_equal(list(self.expected_results["F_sd_f_r"]), list(self.predicted_data.load_collective["r"]["f_sd_f"]))
@@ -72,18 +73,18 @@ class En_test(unittest.TestCase):
         if any(self.my_input.parameters.gen_params["F_sd_f_r"] > 0):
             self.predicted_data.recompute_kc(self.my_input.parameters.gen_params["F_sd_f_r"], "r")
 
-        np.testing.assert_almost_equal(list(self.expected_results["k_c_rail_preds_new"]), list(self.predicted_data.load_collective["r"]["k_c"]["preds"]))
-        np.testing.assert_almost_equal(list(self.expected_results["k_c_rail_upper_new"]), list(self.predicted_data.load_collective["r"]["k_c"]["upper"]))
-        np.testing.assert_almost_equal(list(self.expected_results["k_c_wf_preds_new"]), list(self.predicted_data.load_collective["wf"]["k_c"]["preds"]))
-        np.testing.assert_almost_equal(list(self.expected_results["k_c_wf_upper_new"]), list(self.predicted_data.load_collective["wf"]["k_c"]["upper"]))
-        np.testing.assert_almost_equal(list(self.expected_results["k_c_wr_preds_new"]), list(self.predicted_data.load_collective["wr"]["k_c"]["preds"]))
-        np.testing.assert_almost_equal(list(self.expected_results["k_c_wr_upper_new"]), list(self.predicted_data.load_collective["wr"]["k_c"]["upper"]))
+        np.testing.assert_almost_equal(list(self.expected_results["k_c_rail_preds_expected"]), list(self.predicted_data.load_collective["r"]["k_c"]["preds"] * 1e6))
+        np.testing.assert_almost_equal(list(self.expected_results["k_c_rail_upper_expected"]), list(self.predicted_data.load_collective["r"]["k_c"]["upper"] * 1e6))
+        np.testing.assert_almost_equal(list(self.expected_results["k_c_wf_preds_expected"]), list(self.predicted_data.load_collective["wf"]["k_c"]["preds"] * 1e6))
+        np.testing.assert_almost_equal(list(self.expected_results["k_c_wf_upper_expected"]), list(self.predicted_data.load_collective["wf"]["k_c"]["upper"] * 1e6))
+        np.testing.assert_almost_equal(list(self.expected_results["k_c_wr_preds_expected"]), list(self.predicted_data.load_collective["wr"]["k_c"]["preds"] * 1e6))
+        np.testing.assert_almost_equal(list(self.expected_results["k_c_wr_upper_expected"]), list(self.predicted_data.load_collective["wr"]["k_c"]["upper"] * 1e6))
 
-    def test_computed_proofs(self):
-        self.predicted_data.predict_travelled_dist(self.my_input.parameters.gen_params["cycle_mode"], self.my_input.parameters.gen_params["num_cycles_wheel"], self.my_input.gp_input.raw["r_l"])
+    def test_computed_proofs(self) -> None:
+        self.predicted_data.predict_travelled_dist(self.my_input.gp_input.raw["cycle_mode"], self.my_input.gp_input.raw["num_cycles_wheel"], self.my_input.gp_input.raw["r_l"])
         self.load_load_collective()
 
-        self.en_computation = Computation()
+        self.en_computation = ENComputation()
         self.en_computation.load_data(self.my_input, self.predicted_data)
         self.load_design_param()
         self.en_computation.compute_pre_F_rd_all()
@@ -104,18 +105,18 @@ class En_test(unittest.TestCase):
         np.testing.assert_almost_equal(list(self.expected_results["f_ff_wheel"]), list(self.en_computation.wheel_f.factors["f_ff"]))
         np.testing.assert_almost_equal(list(self.expected_results["f_ff_wheel"]), list(self.en_computation.wheel_r.factors["f_ff"]))
 
-        np.testing.assert_almost_equal(list(self.expected_results["v_c_rail"]), list(self.en_computation.rail.load_collective["v_c"]))
-        np.testing.assert_almost_equal(list(self.expected_results["v_c_wheel"]), list(self.en_computation.wheel_f.load_collective["v_c"]))
-        np.testing.assert_almost_equal(list(self.expected_results["v_c_wheel"]), list(self.en_computation.wheel_r.load_collective["v_c"]))
+        np.testing.assert_almost_equal(list(self.expected_results["v_c_rail"]), list(self.en_computation.rail.load_collective["v_c"]), decimal=4)
+        np.testing.assert_almost_equal(list(self.expected_results["v_c_wheel"]), list(self.en_computation.wheel_f.load_collective["v_c"]), decimal=4)
+        np.testing.assert_almost_equal(list(self.expected_results["v_c_wheel"]), list(self.en_computation.wheel_r.load_collective["v_c"]), decimal=4)
 
         self.load_F_u_ff_v_c()
         self.en_computation.des_params["E_m"] = self.design_params["E_m"]
         self.en_computation.compute_F_rd_all()
-        np.testing.assert_almost_equal(list(self.expected_results["F_rd_f_r"]), list(self.en_computation.rail.F_rd["F_rd_f"]["preds"]))
-        np.testing.assert_almost_equal(list(self.expected_results["F_rd_f_wf"]), list(self.en_computation.wheel_f.F_rd["F_rd_f"]["preds"]))
-        np.testing.assert_almost_equal(list(self.expected_results["F_rd_f_wr"]), list(self.en_computation.wheel_r.F_rd["F_rd_f"]["preds"]))
+        np.testing.assert_almost_equal(list(self.expected_results["F_rd_f_r"]), list(self.en_computation.rail.F_rd["F_rd_f"]["preds"]), decimal=4)
+        np.testing.assert_almost_equal(list(self.expected_results["F_rd_f_wf"]), list(self.en_computation.wheel_f.F_rd["F_rd_f"]["preds"]), decimal=4)
+        np.testing.assert_almost_equal(list(self.expected_results["F_rd_f_wr"]), list(self.en_computation.wheel_r.F_rd["F_rd_f"]["preds"]), decimal=4)
 
-    def load_k_c(self):
+    def load_k_c(self) -> None:
         self.predicted_data.load_collective["r"]["k_c"]["preds"] = self.load_collective["k_c_rail_preds"]
         self.predicted_data.load_collective["r"]["k_c"]["upper"] = self.load_collective["k_c_rail_upper"]
         self.predicted_data.load_collective["wf"]["k_c"]["preds"] = self.load_collective["k_c_wf_preds"]
@@ -123,7 +124,7 @@ class En_test(unittest.TestCase):
         self.predicted_data.load_collective["wr"]["k_c"]["preds"] = self.load_collective["k_c_wr_preds"]
         self.predicted_data.load_collective["wr"]["k_c"]["upper"] = self.load_collective["k_c_wr_upper"]
 
-    def load_load_collective(self):
+    def load_load_collective(self) -> None:
         self.predicted_data.load_collective["r"]["k_c"]["preds"] = self.expected_results["k_c_rail_preds_new"]
         self.predicted_data.load_collective["r"]["k_c"]["upper"] = self.expected_results["k_c_rail_upper_new"]
         self.predicted_data.load_collective["wf"]["k_c"]["preds"] = self.expected_results["k_c_wf_preds_new"]
@@ -135,16 +136,32 @@ class En_test(unittest.TestCase):
         self.predicted_data.load_collective["wf"]["f_sd_f"] = self.load_collective["F_sd_f_w"]
         self.predicted_data.load_collective["wr"]["f_sd_f"] = self.load_collective["F_sd_f_w"]
 
-    def load_F_u_ff_v_c(self):
+    def load_F_u_ff_v_c(self) -> None:
         self.en_computation.rail.F_rd["F_u"] = self.f_rd["F_u_r"]
         self.en_computation.wheel_f.F_rd["F_u"] = self.f_rd["F_u_w"]
         self.en_computation.wheel_f.F_rd["F_u"] = self.f_rd["F_u_w"]
+
+        self.en_computation.rail.load_collective["v_c"] = self.f_rd["v_c_rail"]
+        self.en_computation.wheel_f.load_collective["v_c"] = self.f_rd["v_c_wheel"]
+        self.en_computation.wheel_r.load_collective["v_c"] = self.f_rd["v_c_wheel"]
 
         self.en_computation.rail.factors["f_ff"] = self.f_rd["f_ff_rail"]
         self.en_computation.wheel_f.factors["f_ff"] = self.f_rd["f_ff_wheel"]
         self.en_computation.wheel_r.factors["f_ff"] = self.f_rd["f_ff_wheel"]
 
-    def load_design_param(self):
+        self.en_computation.wheel_f.load_collective["s_c"] = pd.DataFrame()
+        self.en_computation.wheel_f.load_collective["s_c"]["preds"] = self.en_computation.wheel_f.load_collective["k_c"]["preds"] * self.en_computation.wheel_f.load_collective["v_c"]
+        self.en_computation.wheel_f.load_collective["s_c"]["upper"] = self.en_computation.wheel_f.load_collective["k_c"]["upper"] * self.en_computation.wheel_f.load_collective["v_c"]
+
+        self.en_computation.wheel_r.load_collective["s_c"] = pd.DataFrame()
+        self.en_computation.wheel_r.load_collective["s_c"]["preds"] = self.en_computation.wheel_r.load_collective["k_c"]["preds"] * self.en_computation.wheel_r.load_collective["v_c"]
+        self.en_computation.wheel_r.load_collective["s_c"]["upper"] = self.en_computation.wheel_r.load_collective["k_c"]["upper"] * self.en_computation.wheel_r.load_collective["v_c"]
+
+        self.en_computation.rail.load_collective["s_c"] = pd.DataFrame()
+        self.en_computation.rail.load_collective["s_c"]["preds"] = self.en_computation.rail.load_collective["k_c"]["preds"] * self.en_computation.rail.load_collective["v_c"]
+        self.en_computation.rail.load_collective["s_c"]["upper"] = self.en_computation.rail.load_collective["k_c"]["upper"] * self.en_computation.rail.load_collective["v_c"]
+
+    def load_design_param(self) -> None:
         self.en_computation.des_params = self.design_params
 
 

@@ -6,7 +6,7 @@ import pathlib
 import numpy as np
 import pandas as pd
 
-from .input_error_check import ErrorCheck
+from .input_error_check import ErrorCheck, InputFileError
 
 
 class RailWheelInput():
@@ -121,79 +121,37 @@ class StandardMaterials(RailWheelInput):
 
     def read(self, filename: pathlib.Path, sheetname_rail: str, sheetname_wheel: str) -> Tuple[Optional[bool], Optional[bool]]: # type: ignore
         super().read(filename, sheetname_rail, sheetname_wheel)
-        wheel = None
-        rail = None
         expected_vars = ["hardened", "f_y", "HB", "E", "v", "z"]
 
         if not pd.DataFrame(expected_vars).isin(list(self.wheel.columns)).all().loc[0]:
-            wheel = True
+            raise InputFileError("Broken input file: wheel material sheet has missing vars")
 
         if not pd.DataFrame(expected_vars).isin(list(self.rail.columns)).all().loc[0]:
-            rail = True
-
-        if wheel or rail:
-            return wheel, rail
+            raise InputFileError("Broken input file: rail material sheet has missing vars")
 
         self.wheel = self.wheel.loc[:, expected_vars]
         self.rail = self.rail.loc[:, expected_vars]
-        # self.wheel = self.wheel.iloc[:, :8]
-        # self.rail = self.rail.iloc[:, :8]
-        # self.wheel.drop(columns=["norm", "material_number"], inplace=True)
-        # self.rail.drop(columns=["norm", "material_number"], inplace=True)
-        return wheel, rail
-        # self.wheel = pd.read_excel(filename, sheet_name=sheetname_wheel, index_col=0)
-        # self.rail = pd.read_excel(filename, sheet_name=sheetname_rail, index_col=0)
-
-        # # get rid on nan materials
-        # self.wheel = self.wheel.loc[~self.wheel.index.isnull(), :]
-        # self.rail = self.rail.loc[~self.rail.index.isnull(), :]
-
-        # self.wheel.drop(self.wheel.index[0])
-        # self.rail.drop(self.rail.index[0])
-
-        # self.loaded = True
 
 
 class StandardGeometries(RailWheelInput):
 
-    def read(self, filename: pathlib. Path, sheetname_rail: str, sheetname_wheel: str) -> Tuple[Optional[bool], Optional[bool]]: # type: ignore
+    def read(self, filename: pathlib. Path, sheetname_rail: str, sheetname_wheel: str) -> None: # type: ignore
         super().read(filename, sheetname_rail, sheetname_wheel)
-
-        wheel = None
-        rail = None
 
         expected_vars_wheel = ["b", "r_k", "r_3", "D"]
         expected_vars_rail = ["b", "r_k", "r_3"]
 
         if not pd.DataFrame(expected_vars_wheel).isin(list(self.wheel.columns)).all().loc[0]:
-            wheel = True
+            raise InputFileError("Broken input file: wheel geometry sheet has missing vars")
 
         if not pd.DataFrame(expected_vars_rail).isin(list(self.rail.columns)).all().loc[0]:
-            rail = True
-
-        if wheel or rail:
-            return wheel, rail
+            raise InputFileError("Broken input file: rail geometry sheet has missing vars")
 
         self.wheel = self.wheel.loc[:, expected_vars_wheel]
         self.rail = self.rail.loc[:, expected_vars_rail]
 
-        return wheel, rail
 
-    # def read(self, filename, sheetname_rail, sheetname_wheel):
-    #     self.wheel = pd.read_excel(filename, sheet_name=sheetname_wheel, index_col=0)
-    #     self.rail = pd.read_excel(filename, sheet_name=sheetname_rail, index_col=0)
-
-    #     # get rid of nan geometries
-    #     self.wheel = self.wheel.loc[~self.wheel.index.isnull(), :]
-    #     self.rail = self.rail.loc[~self.rail.index.isnull(), :]
-
-    #     self.wheel.drop(self.wheel.index[0])
-    #     self.rail.drop(self.rail.index[0])
-
-    #     self.loaded = True
-
-
-class StandardInput():
+class EN13001Input():
     """Class that contains standard inputs for en computation.
 
     Attributes:
@@ -348,15 +306,24 @@ class StandardInput():
 
     def compute_contact_and_f_1(self) -> None:
 
-        # coerce w to numbers
-        self.gen_params.loc[:, "w"] = pd.to_numeric(self.gen_params["w"])
+        """Computes following paramters:
+
+            b_min
+            r_k
+            f_1
+        """
 
         # get b_min from wheel an rail b
         b = np.vstack((self.geometries["wheel"]["b"], self.geometries["rail"]["b"]))
         self.gen_params["b_min"] = np.min(b, axis=0)
 
         # compute w 
-        # self.gen_params.loc[:, "w"] = (abs(self.geometries["wheel"]["b"] - self.geometries["rail"]["b"])) / 2
+        computed_w = (abs(self.geometries["wheel"]["b"] - self.geometries["rail"]["b"])) / 2
+        cond = (self.gen_params["w"] == 0)
+        self.gen_params.loc[cond, "w"][cond] = computed_w[cond]
+
+        # coerce w to numbers
+        self.gen_params.loc[:, "w"] = pd.to_numeric(self.gen_params["w"])
 
         # find r_k --> either wheel or rail r_k should be zero
         r_k = np.vstack((self.geometries["wheel"]["r_k"], self.geometries["rail"]["r_k"]))

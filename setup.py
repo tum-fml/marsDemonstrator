@@ -4,7 +4,7 @@ from setuptools import setup
 
 CLASSIFIERS = '''\
 License :: OSI Approved
-Programming Language :: Python :: 3.6
+Programming Language :: Python :: 3.7
 Topic :: Software Development
 Operating System :: Microsoft :: Windows
 Operating System :: POSIX
@@ -16,7 +16,6 @@ DISTNAME = 'marsDemonstrator'
 AUTHOR = 'Mathias Laile'
 AUTHOR_EMAIL = 'mathias.laile@tum.de'
 DESCRIPTION = 'This package contains the demonstrator for the project mars.'
-LICENSE = 'MIT'
 README = 'This package contains the demonstrator for the project mars.'
 
 VERSION = '0.1.0'
@@ -28,9 +27,8 @@ PYTHON_REQUIRES = f'>={PYTHON_MIN_VERSION}, <= {PYTHON_MAX_VERSION}'
 
 INSTALL_REQUIRES = [
     'numpy>=1.16',
-    # 'scipy',
     'pandas',
-    'joblib==0.17.0',
+    'joblib>=0.17.0',
     'gpytorch>=1.2.0',
     'xlrd==1.2.0',
     'xlsxwriter',
@@ -53,7 +51,6 @@ metadata = dict(
     author_email=AUTHOR_EMAIL,
     description=DESCRIPTION,
     classifiers=[CLASSIFIERS],
-    license=LICENSE
 )
 
 
