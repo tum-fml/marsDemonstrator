@@ -1,2 +1,1 @@
-# MARS Softwaredemonstrator
-
+# marsDemonstrator
