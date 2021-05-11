@@ -3,9 +3,9 @@ from setuptools import setup
 
 
 CLASSIFIERS = '''\
-License :: OSI Approved
+License :: CC0-1.0 License
 Programming Language :: Python :: 3.7
-Topic :: Software Development
+Topic :: Design Methods
 Operating System :: Microsoft :: Windows
 Operating System :: POSIX
 Operating System :: Unix
@@ -19,7 +19,7 @@ DESCRIPTION = 'This package contains the demonstrator for the project mars.'
 README = 'This package contains the demonstrator for the project mars.'
 
 VERSION = '0.1.0'
-ISRELEASED = False
+ISRELEASED = True
 
 PYTHON_MIN_VERSION = '3.6'
 PYTHON_MAX_VERSION = '3.8'
