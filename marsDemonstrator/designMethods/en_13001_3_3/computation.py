@@ -5,8 +5,8 @@ from typing import Dict, Union
 import numpy as np
 import pandas as pd
 
-from .predictions import LoadCollectivePrediction
-from .user_input import EN_input
+from .load_collective import LoadCollectivePrediction
+from .mars_input import MARSInput
 
 # import abc
 
@@ -14,7 +14,7 @@ from .user_input import EN_input
 Coefficients = namedtuple("Coefficients", ["Y_m", "Y_cf", "m", "Y_p"])
 
 
-class Computation():
+class ENComputation():
     """Class for doing all computations
     """
     # functions
@@ -29,7 +29,7 @@ class Computation():
         self.D_w: pd.DataFrame
         self.v_c_data: Dict[str, np.array]
 
-    def load_data(self, user_input: EN_input, predicted_data: LoadCollectivePrediction) -> None:
+    def load_data(self, user_input: MARSInput, predicted_data: LoadCollectivePrediction) -> None:
         # data frame with data for en computation
         input_df = user_input.parameters.gen_params
         gp_input = user_input.gp_input.raw
@@ -105,13 +105,6 @@ class Computation():
         self.wheel_r.load_results()
         self.rail.load_results()
 
-    # def compute_min_d(self):
-    #     min_d_r_s = self.rail.compute_min_d_s()
-    #     min_d_r_f = self.rail.compute_min_d_f()
-    #     min_d_w_s = self.wheel.compute_min_d_s()
-    #     min_d_w_f = self.wheel.compute_min_d_f()
-    #     self.wheel.min_d = max(min_d_r_s, min_d_r_f, min_d_w_s, min_d_w_f)
-
 
 class Part(): # pylint: disable=too-many-instance-attributes
 
@@ -139,7 +132,7 @@ class Part(): # pylint: disable=too-many-instance-attributes
         Results of static and fatigue proof
 
     load_collective: Dict of DataFrames
-        Contains k_c (pred and upper confidence) and f_sd_f
+        Contains k_c (pred and upper confidence), f_sd_f and f_sd_f
 
     z:
         Computed z
@@ -148,7 +141,7 @@ class Part(): # pylint: disable=too-many-instance-attributes
         Results for output file
     """    
 
-    def __init__(self, user_input: EN_input, predicted_data: LoadCollectivePrediction, part_type: str, part: str) -> None:
+    def __init__(self, user_input: MARSInput, predicted_data: LoadCollectivePrediction, part_type: str, part: str) -> None:
 
         # load materials and geometries 
         self.material = user_input.parameters.materials[part_type]
@@ -164,10 +157,11 @@ class Part(): # pylint: disable=too-many-instance-attributes
         self.F_rd: Dict[str, Union[pd.Series, pd.DataFrame]] = {"F_rd_s": pd.Series(), "F_rd_f": pd.DataFrame(), "F_u": pd.Series()}
 
         # parse F_sd for static and fatigue proof
-        self.F_sd = pd.to_numeric(predicted_data.load_collective[part]["f_sd_f"])
+        self.F_sd_f = pd.to_numeric(predicted_data.load_collective[part]["f_sd_f"])
+        self.F_sd_s = pd.to_numeric(predicted_data.load_collective[part]["f_sd_s"])
 
         # dictionary for proor results
-        self.proofs = {"static": None, "fatigue": pd.DataFrame()}
+        self.proofs: Dict[str, Union[pd.Series, pd.DataFrame]] = {"static": pd.Series(), "fatigue": pd.DataFrame()}
 
         # load collective data (k_c and v_c) for computing F_rd_f
         self.load_collective = predicted_data.load_collective[part]
@@ -187,13 +181,13 @@ class Part(): # pylint: disable=too-many-instance-attributes
 
     def compute_z_ml(self, design_param: pd.DataFrame, D_w: pd.Series, idx: np.array) -> pd.Series:
 
-        z_ml = (0.5 * (self.F_sd[idx] * math.pi * D_w[idx] * (1 - self.material["v"][idx] ** 2)
+        z_ml = (0.5 * (self.F_sd_f[idx] * math.pi * D_w[idx] * (1 - self.material["v"][idx] ** 2)
                        / (design_param["b"][idx] * design_param["E_m"][idx]))
                 ** (1/2))
         return z_ml
 
     def compute_z_mp(self, design_param: pd.DataFrame, D_w: pd.Series, idx: np.array) -> pd.Series:
-        z_mp = (0.68 * (self.F_sd[idx] / design_param["E_m"][idx]
+        z_mp = (0.68 * (self.F_sd_f[idx] / design_param["E_m"][idx]
                         * ((1 - self.material["v"][idx] ** 2) 
                            / (2 / D_w[idx] + 1 / design_param["r_k"][idx]))) 
                 ** (1/3))
@@ -236,9 +230,6 @@ class Part(): # pylint: disable=too-many-instance-attributes
                                * ((math.pi * D_w * design_params["b"] * (1 - self.material["v"] ** 2) 
                                    * design_params["f_1"] * design_params["f_2"]) 
                                    / design_params["E_m"]))
-        # self.F_rd["F_rd_s"] = ((factor ** 2) * design_params["f_1"] * design_params["f_2"] / coefficients.Y_m 
-        #                        * math.pi * D_w * design_params["b"] * (1 - self.material["v"] ** 2)
-        #                        / design_params["E_m"])
 
     def compute_F_rd_f(self, coefficients: Coefficients):
         self.F_rd["F_rd_f"]["preds"] = ((self.F_rd["F_u"] * self.factors["f_ff"]) 
@@ -247,20 +238,19 @@ class Part(): # pylint: disable=too-many-instance-attributes
                                         / (coefficients.Y_cf * (self.load_collective["s_c"]["upper"] ** (1/coefficients.m))))
 
     def compute_proofs(self):
-        self.proofs["static"] = self.F_sd <= self.F_rd["F_rd_s"]
-        self.proofs["fatigue"]["preds"] = self.F_sd <= self.F_rd["F_rd_f"]["preds"]
-        self.proofs["fatigue"]["upper"] = self.F_sd <= self.F_rd["F_rd_f"]["upper"]
+        self.proofs["static"] = self.F_sd_s <= self.F_rd["F_rd_s"]
+        self.proofs["fatigue"]["preds"] = self.F_sd_f <= self.F_rd["F_rd_f"]["preds"]
+        self.proofs["fatigue"]["upper"] = self.F_sd_f <= self.F_rd["F_rd_f"]["upper"]
 
     def load_results(self):
         self.results["static"] = pd.DataFrame({
-            "Deisgn-Contact-Force-F_sd_s [kN]": self.F_sd / 1000,
+            "Design-Contact-Force-F_sd_s [kN]": self.F_sd_s / 1000,
             "Limit-Design-Contact-Force-Static-F_rd_s [kN]": self.F_rd["F_rd_s"] / 1000,
             "Condition-Fullfilled": self.proofs["static"]
         })
 
-        self.results["fatigue"] = {"prediction": {}, "upper_confidence": {}}
         self.results["fatigue"] = pd.DataFrame({
-            "Deisgn-Contact-Force-F_sd_f [kN]": self.F_sd / 1000,
+            "Design-Contact-Force-F_sd_f [kN]": self.F_sd_f / 1000,
             "Reference-Contact-Force-F_u [kN]": self.F_rd["F_u"] / 1000,
             "Relative-Total-Number-of-Rolling-Contacts-v_c": self.load_collective["v_c"],
             "Contact-Force-Spectrum-Factor-k_c-Prediction": self.load_collective["k_c"]["preds"],
@@ -272,33 +262,6 @@ class Part(): # pylint: disable=too-many-instance-attributes
             "Limit-Force-F_rd_f-Prediction-Upper-Confidence-Interval [kN]": self.F_rd["F_rd_f"]["upper"] / 1000,
             "Condition-Fullfilled-Upper-Confidence_Interval": self.proofs["fatigue"]["preds"]
         })
-
-    # @abc.abstractmethod
-    # def compute_v_c(self):
-    #     return
-
-    # def compute_min_d_f(self, factors, coefficients, b, E_m):
-    #     s_c = self.compute_s_c()
-    #     if self.material.hardened == 'False':
-    #         denominator = factors["f_f"]*math.pi*(3*self.material.HB)**2*b*(1-coefficients.v**2)
-    #         numerator = (self.F_sd_f*coefficients.Y_cf*s_c**(1/coefficients.m)*E_m)
-    #         min_d_f = numerator / denominator
-    #     else:
-    #         denominator = (factors["f_f"]*math.pi*(1.8*self.material.f_y)**2*b*(1-coefficients.v**2))
-    #         numerator = (self.F_sd_f*coefficients.Y_cf*s_c**(1/coefficients.m)*E_m)
-    #         min_d_f = numerator / denominator
-    #     return min_d_f
-
-    # def compute_min_d_s(self, factors, coefficients, b, E_m):
-    #     if self.material.hardened == 'False':
-    #         numerator = self.F_sd_s*coefficients.Y_m * E_m
-    #         denominator = (7*self.material.HB)**2*math.pi*b*(1-coefficients.v**2)*factors["f_1"]*factors["f_2"]
-    #         min_d_s = numerator / denominator
-    #     else:
-    #         numerator = self.F_sd_s*coefficients.Y_m*E_m
-    #         denominator = (4.2*self.material.f_y)**2*math.pi*b*(1-coefficients.v**2)*factors["f_1"]*factors["f_2"]
-    #         min_d_s = numerator / denominator
-    #     return min_d_s
 
 
 class Wheel(Part):

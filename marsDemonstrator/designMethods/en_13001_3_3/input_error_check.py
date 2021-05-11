@@ -4,6 +4,10 @@ import numpy as np
 import pandas as pd
 
 
+class InputFileError(Exception):
+    pass
+
+
 class ErrorCheck():
     def __init__(self, fn_check_val: Any, error_msg: Dict[str, str], gp_input: Optional[bool] = None) -> None:
         self.gp_input = gp_input
@@ -13,7 +17,7 @@ class ErrorCheck():
         self.value_data: pd.DataFrame
         self.type_data: pd.DataFrame
         self.nan_data: pd.DataFrame
-        self.num_runs: pd.DataFrame
+        self.num_runs: int
 
     def load_type_data(self, data_runs: Tuple[pd.DataFrame, int]) -> None:
         self.type_data, self.num_runs = data_runs

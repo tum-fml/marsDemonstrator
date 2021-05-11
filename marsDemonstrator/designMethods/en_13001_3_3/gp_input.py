@@ -228,6 +228,9 @@ class GPInput():
 
         # check for each variable if they are within expected intervals
         for var_name in value_check_data.columns:
+            if var_name == "Cycle Mode":
+                value_check_data[var_name] = value_check_data.loc[:, var_name].isin([1, 2, 4])
+                continue
             value_check_data[var_name] = np.logical_and((value_check_data[var_name] >= value_check_compare.loc["min", var_name]), 
                                                         (value_check_data[var_name] <= value_check_compare.loc["max", var_name]))
 
