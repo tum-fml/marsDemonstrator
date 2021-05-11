@@ -41,7 +41,7 @@ class LoadCollectivePrediction():
 
     def load_f_sd_s(self, f_sd_s_w: pd.Series, f_sd_s_r: pd.Series) -> None:
         for part in self.load_collective:
-            self.load_collective[part]["f_sd_s"] = f_sd_s_w if "w" in part else f_sd_s_r
+            self.load_collective[part]["f_sd_s"] = (f_sd_s_w * 1000) if "w" in part else (f_sd_s_r * 1000)
 
     def predict_kc(self, input_data: torch.Tensor) -> None:
 

@@ -7,11 +7,11 @@ from marsDemonstrator.designMethods.en_13001_3_3 import MARSInput # pylint: disa
 
 class En_test(unittest.TestCase):
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.config = "m1"
         self.direction = 1
         parent_path = pathlib.Path(__file__).parent.parent.absolute()
-        input_file = parent_path  / "testdata"  / "test_geometry_material_input.xlsx"
+        input_file = parent_path  / "testdata"  / "test_material_input.xlsx"
         self.my_input = MARSInput()
         self.my_input.load_material_input_check(input_file, "rail_materials", "wheel_materials")
         self.my_input.load_geometry_input_check(input_file, "rail_geometries", "wheel_geometries")
@@ -34,7 +34,7 @@ class En_test(unittest.TestCase):
         self.expected_results_materials = self.expected_results_materials.transpose()
         self.expected_results_materials.index = range(len(self.expected_results_materials))
 
-    def test_material_parameters(self):
+    def test_material_parameters(self) -> None:
         np.testing.assert_almost_equal(list(self.expected_results_materials["res_E_r"]), list(self.my_input.parameters.materials["rail"]["E"]))
         np.testing.assert_almost_equal(list(self.expected_results_materials["res_f_y_r"]), list(self.my_input.parameters.materials["rail"]["f_y"]))
         np.testing.assert_almost_equal(list(self.expected_results_materials["res_HB_r"]), list(self.my_input.parameters.materials["rail"]["HB"]))
@@ -47,7 +47,7 @@ class En_test(unittest.TestCase):
         np.testing.assert_almost_equal(list(self.expected_results_materials["res_z_w"]), list(self.my_input.parameters.materials["wheel"]["z"]))
         np.testing.assert_almost_equal(list(self.expected_results_materials["res_v_w"]), list(self.my_input.parameters.materials["wheel"]["v"]))
 
-    def test_computed_geometry(self):
+    def test_computed_geometry(self) -> None:
         # np.testing.assert_almost_equal(list(self.my_input.parameters.data["E_m_test"]), list(self.my_input.parameters.data["E_m"]))
         np.testing.assert_almost_equal(list(self.expected_results_geometry["res_b_min"]), list(self.my_input.parameters.gen_params["b_min"]))
         self.assertEqual(list(self.expected_results_geometry["res_contact"]), list(self.my_input.parameters.gen_params["contact"]))
