@@ -1,6 +1,6 @@
 # MARS Software Demonstrator
 
-This repository contains the code for the software tool developed for the procject <a href="https://www.mw.tum.de/en/fml/research/current-research-projects/mars-methodology-for-the-practical-design-of-the-wheel-rail-system-for-stacker-cranes/">MARS</a> - Methodology for the practical design of the rail-wheel system for stacker cranes. There is also a web application version for this demonstrator which can be found <a href="http://mars-softwaredemonstrator.de">here</a>. For more information visit <a href="http://mars-softwaredemonstrator.de/about/">here</a>
+This repository contains the code for the software tool developed for the procject <a href="https://www.mw.tum.de/en/fml/research/current-research-projects/mars-methodology-for-the-practical-design-of-the-wheel-rail-system-for-stacker-cranes/">MARS</a> - Methodology for the practical design of the rail-wheel system for stacker cranes. There is also a web application version for this demonstrator which can be found <a href="http://mars-softwaredemonstrator.de">here</a>. For more information visit <a href="http://mars-softwaredemonstrator.de/about/">here</a>.
 
 
 ## Installation
