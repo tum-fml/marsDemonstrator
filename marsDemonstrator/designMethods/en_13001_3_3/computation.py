@@ -168,6 +168,9 @@ class Part(): # pylint: disable=too-many-instance-attributes
         self.z: pd.DataFrame
         self.results: Dict[str, pd.DataFrame] = {}
 
+        # load user defined v_c
+        self.load_collective["user_v_c"] = user_input.parameters.gen_params["v_c_w"] if "w" in part else user_input.parameters.gen_params["v_c_r"]
+
     def compute_z(self, design_param: pd.DataFrame, D_w: pd.Series) -> None:
 
         # get configurations for point and line contact
@@ -270,6 +273,9 @@ class Wheel(Part):
         i_tot = travelled_dist / (D_w * math.pi / 1000)
         self.load_collective["v_c"] = i_tot / 6.4e6
 
+        # load user v_c
+        self.load_collective["v_c"][self.load_collective["user_v_c"] != 0] = self.load_collective["user_v_c"][self.load_collective["user_v_c"] != 0]
+
     def compute_s_c(self, D_w: pd.Series, travelled_dist: np.array) -> None:
         self.compute_v_c(D_w, travelled_dist)
         self.load_collective["s_c"] = pd.DataFrame()
@@ -282,6 +288,9 @@ class Rail(Part):
     def compute_v_c(self, num_cycles: pd.Series) -> None:
         i_tot = num_cycles * 4
         self.load_collective["v_c"] = i_tot / 6.4e6
+
+        # load user v_c
+        self.load_collective["v_c"][self.load_collective["user_v_c"] != 0] = self.load_collective["user_v_c"][self.load_collective["user_v_c"] != 0].copy()
 
     def compute_s_c(self, num_cycles: pd.Series) -> None:
         self.compute_v_c(num_cycles)
