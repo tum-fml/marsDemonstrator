@@ -19,7 +19,7 @@ AUTHOR_EMAIL = 'mathias.laile@tum.de'
 DESCRIPTION = 'This package contains the demonstrator for the project mars.'
 README = 'This package contains the demonstrator for the project mars.'
 
-VERSION = '0.1.3'
+VERSION = '0.1.4'
 ISRELEASED = True
 
 PYTHON_MIN_VERSION = '3.6'

@@ -267,7 +267,7 @@ class Part(): # pylint: disable=too-many-instance-attributes
 class Wheel(Part):
 
     def compute_v_c(self, D_w: pd.Series, travelled_dist: np.array) -> None:
-        i_tot = travelled_dist / D_w
+        i_tot = travelled_dist / (D_w * math.pi / 1000)
         self.load_collective["v_c"] = i_tot / 6.4e6
 
     def compute_s_c(self, D_w: pd.Series, travelled_dist: np.array) -> None:
