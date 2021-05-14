@@ -171,6 +171,10 @@ class Part(): # pylint: disable=too-many-instance-attributes
         # load user defined v_c
         self.load_collective["user_v_c"] = user_input.parameters.gen_params["v_c_w"] if "w" in part else user_input.parameters.gen_params["v_c_r"]
 
+        # multiply k_c times dynamic factor
+        self.load_collective["k_c"]["preds"] = self.load_collective["k_c"]["preds"] * user_input.parameters.gen_params["phi"]
+        self.load_collective["k_c"]["upper"] = self.load_collective["k_c"]["upper"] * user_input.parameters.gen_params["phi"]
+
     def compute_z(self, design_param: pd.DataFrame, D_w: pd.Series) -> None:
 
         # get configurations for point and line contact
