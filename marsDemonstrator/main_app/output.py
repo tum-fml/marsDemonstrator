@@ -87,6 +87,14 @@ class ResultWriter():
     # write results and inputs
     def write(self) -> None:
 
+        def write_name() -> None:
+
+            # get the row that has the name and transform to dataframe
+            name_row = self.en_input.input_df.iloc[0].to_frame().T
+            name_row.iloc[:, 0] = " "
+            name_row.to_excel(writer, sheet_name="summary", startrow=0, startcol=0, header=False)
+            name_row.to_excel(writer, sheet_name="results", startrow=0, startcol=0, header=False)
+
         def write_results() -> None:
 
             for part, part_outname in zip(["wheel_f", "wheel_r", "rail"], ["Front Wheel", "Rear Wheel", "Rail"]):
@@ -182,10 +190,12 @@ class ResultWriter():
 
             # set start row for first and second level for summary and results sheets
             start_rows = {
-                "second_level_res": 0,
-                "first_level_res": 0,
-                "summary": 0
+                "second_level_res": 1,
+                "first_level_res": 1,
+                "summary": 1,
             }
+
+            write_name()
 
             write_results()
 
